@@ -1,0 +1,108 @@
+---
+const apiBase = "https://vexp.me";
+---
+
+<div id="tg-auth" class="tg-auth-wrapper">
+  <button id="tg-login-btn" class="tg-login-btn" style="display:none;" onclick="startTgLogin()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" fill="#29B6F6"/></svg>
+    <span>Login with Telegram</span>
+  </button>
+
+  <div id="tg-connecting" class="tg-connecting" style="display:none;">
+    <span class="tg-spinner"></span>
+    <span>Press Start in the bot...</span>
+  </div>
+
+  <div id="tg-user-info" class="tg-user-info" style="display:none;">
+    <img id="tg-avatar" class="tg-avatar" src="" alt="" />
+    <span id="tg-name" class="tg-name"></span>
+    <span id="tg-vip-badge" class="tg-vip-badge" style="display:none;">VIP</span>
+  </div>
+</div>
+
+<script is:inline define:vars={{ apiBase }}>
+  var _loginPoll = null;
+
+  (function() {
+    var token = localStorage.getItem("miq_token");
+    var user = JSON.parse(localStorage.getItem("miq_user") || "null");
+    if (token && user) {
+      showUser(user);
+      fetch(apiBase + "/api/auth/me", { headers: { Authorization: "Bearer " + token } })
+        .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function(d) { user.is_vip = d.is_vip; localStorage.setItem("miq_user", JSON.stringify(user)); showUser(user); })
+        .catch(function() { localStorage.removeItem("miq_token"); localStorage.removeItem("miq_user"); showLogin(); });
+    } else { showLogin(); }
+  })();
+
+  window.startTgLogin = function() {
+    fetch(apiBase + "/api/auth/login-token", { method: "POST" })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Open Telegram bot
+        window.open(data.bot_url, "_blank");
+        document.getElementById("tg-login-btn").style.display = "none";
+        document.getElementById("tg-connecting").style.display = "flex";
+        // Poll
+        var attempts = 0;
+        _loginPoll = setInterval(function() {
+          attempts++;
+          if (attempts > 90) { clearInterval(_loginPoll); showLogin(); return; }
+          fetch(apiBase + "/api/auth/check-token?token=" + data.token)
+            .then(function(r) { if (!r.ok) return null; return r.json(); })
+            .then(function(result) {
+              if (result && result.status === "confirmed") {
+                clearInterval(_loginPoll);
+                localStorage.setItem("miq_token", result.token);
+                localStorage.setItem("miq_user", JSON.stringify(result.user));
+                showUser(result.user);
+              }
+            }).catch(function() {});
+        }, 2000);
+      }).catch(function() {});
+  };
+
+  function showUser(user) {
+    document.getElementById("tg-login-btn").style.display = "none";
+    document.getElementById("tg-connecting").style.display = "none";
+    var info = document.getElementById("tg-user-info"); info.style.display = "flex";
+    var av = document.getElementById("tg-avatar");
+    av.src = user.photo_url || ""; av.style.display = user.photo_url ? "block" : "none";
+    document.getElementById("tg-name").textContent = user.first_name || user.username || "User";
+    document.getElementById("tg-vip-badge").style.display = user.is_vip ? "inline-flex" : "none";
+    var vipNav = document.getElementById("nav-vip-btn");
+    if (vipNav) vipNav.style.display = user.is_vip ? "none" : "inline-flex";
+    var mobVip = document.getElementById("mob-vip-btn");
+    if (mobVip) mobVip.style.display = user.is_vip ? "none" : "flex";
+    window.dispatchEvent(new CustomEvent("miq:auth", { detail: user }));
+  }
+
+  function showLogin() {
+    document.getElementById("tg-login-btn").style.display = "flex";
+    document.getElementById("tg-connecting").style.display = "none";
+    document.getElementById("tg-user-info").style.display = "none";
+    var vipNav = document.getElementById("nav-vip-btn");
+    if (vipNav) vipNav.style.display = "none";
+    var mobVip = document.getElementById("mob-vip-btn");
+    if (mobVip) mobVip.style.display = "none";
+    window.dispatchEvent(new CustomEvent("miq:logout"));
+  }
+
+  document.getElementById("tg-user-info").addEventListener("click", function() {
+    if (confirm("Log out?")) { localStorage.removeItem("miq_token"); localStorage.removeItem("miq_user"); showLogin(); }
+  });
+</script>
+
+<style>
+  .tg-auth-wrapper { display: flex; align-items: center; }
+  .tg-login-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(41,182,246,0.08); border: 1px solid rgba(41,182,246,0.25); border-radius: 24px; color: #29B6F6; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .tg-login-btn:hover { background: rgba(41,182,246,0.15); border-color: rgba(41,182,246,0.5); transform: translateY(-1px); }
+  .tg-connecting { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(41,182,246,0.05); border: 1px solid rgba(41,182,246,0.15); border-radius: 24px; font-size: 12px; color: var(--text-muted, #888); }
+  .tg-spinner { width: 12px; height: 12px; border: 2px solid rgba(41,182,246,0.2); border-top-color: #29B6F6; border-radius: 50%; animation: tgSpin 0.8s linear infinite; }
+  @keyframes tgSpin { to { transform: rotate(360deg); } }
+  .tg-user-info { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(15,15,26,0.8); border: 1px solid var(--border, #1a1a2e); border-radius: 24px; cursor: pointer; transition: border-color 0.2s; }
+  .tg-user-info:hover { border-color: rgba(255,255,255,0.15); }
+  .tg-avatar { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+  .tg-name { font-size: 13px; font-weight: 600; color: var(--text-primary, #f0f0f5); }
+  .tg-vip-badge { font-size: 9px; font-weight: 800; color: #ffc107; background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.3); padding: 2px 6px; border-radius: 8px; letter-spacing: 0.5px; }
+</style>

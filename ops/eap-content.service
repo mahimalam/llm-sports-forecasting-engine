@@ -1,0 +1,11 @@
+[Unit]
+Description=EAP-Sports Content Generator
+
+[Service]
+Type=oneshot
+User=mahimalam2400
+WorkingDirectory=/home/mahimalam2400/Fifa_project
+EnvironmentFile=/home/mahimalam2400/Fifa_project/.env
+ExecStart=/home/mahimalam2400/Fifa_project/.venv/bin/python generate_content.py
+ExecStartPost=/bin/bash -c 'cd /home/mahimalam2400/Fifa_project/web && npm run build >> /tmp/eap-build.log 2>&1'
+ExecStartPost=/bin/bash -c 'curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" -H "X-Auth-Email: ${CLOUDFLARE_AUTH_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_AUTH_KEY}" -H "Content-Type: application/json" --data "{\"purge_everything\":true}" >> /tmp/eap-build.log 2>&1'

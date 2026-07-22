@@ -1,0 +1,636 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+<BaseLayout title="FIFA World Cup 2026 Live Scores" description="Real-time live scores for every FIFA World Cup 2026 match with goal events, match stats, and instant updates.">
+
+  <section class="live-hero reveal">
+    <div class="live-badge badge-glow"><span class="live-dot"></span> LIVE</div>
+    <span class="icon-animated icon-pulse"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e87b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#00e87b" stroke="none"/></svg></span>
+    <h1>Live Scores</h1>
+    <p class="live-sub">Fastest live updates, as it happens</p>
+  </section>
+
+  <div id="live-status" class="live-status">
+    <span class="status-dot connecting"></span>
+    <span class="status-text">Connecting to live feed...</span>
+  </div>
+
+  <div id="live-container" class="live-container"></div>
+
+  <div id="live-chat" class="wchat">
+    <div class="wchat-header">
+      <div class="wchat-live-dot"></div>
+      <span class="wchat-title" id="chat-room-title">Community Chat</span>
+      <span class="wchat-typing" id="chat-typing"></span>
+    </div>
+    <div class="wchat-messages" id="chat-messages"></div>
+    <div class="wchat-input-row" id="chat-input-row" style="display:none">
+      <input type="text" id="chat-input" class="wchat-input" placeholder="Type a message..." maxlength="280" autocomplete="off"/>
+      <button class="wchat-send" id="chat-send-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#06060c" stroke="none"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="wchat-login-prompt" id="chat-login-prompt">
+      <span>Login to join the conversation</span>
+      <button onclick="startTgLogin()">Login with Telegram</button>
+    </div>
+  </div>
+
+  <div id="coming-up-container" class="coming-up-container"></div>
+
+</BaseLayout>
+
+<style is:global>
+  .live-hero { text-align: center; padding: 48px 0 24px; }
+  .live-hero h1 { margin-bottom: 8px; }
+  .live-hero h1::after { display: none; }
+  .live-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #00e87b; background: rgba(0,232,123,0.08); border: 1px solid rgba(0,232,123,0.2); padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; letter-spacing: 1px; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #00e87b; animation: livePulse 1.5s ease-in-out infinite; }
+  @keyframes livePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,232,123,0.4); } 50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,232,123,0); } }
+  .live-sub { font-size: 13px; color: var(--text-muted) !important; margin: 0 !important; }
+
+  .live-status { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-dot.connecting { background: var(--warning); animation: livePulse 1s infinite; }
+  .status-dot.connected { background: var(--accent); }
+  .status-dot.error { background: var(--danger); }
+
+  .live-container { display: flex; flex-direction: column; gap: 16px; }
+
+  .live-empty { text-align: center; padding: 80px 20px; }
+  .live-empty-svg { display: block; margin: 0 auto 16px; animation: emptyPulse 2s infinite; }
+  @keyframes emptyPulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
+  .live-empty-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+  .live-empty-desc { font-size: 14px; color: var(--text-muted); max-width: 400px; margin: 0 auto; line-height: 1.6; }
+
+  /* Match card */
+  .lm-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; position: relative; overflow: hidden; animation: fadeIn 300ms ease-out; cursor: pointer; transition: border-color 0.3s; }
+  .lm-card:hover { border-color: rgba(0,232,123,0.4); }
+  .lm-card-live { border-color: rgba(0,232,123,0.25); }
+  .lm-card-live::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #00e87b, #00d4ff); }
+  .lm-card-ft { opacity: 0.7; }
+  .lm-card-ft::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .lm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .lm-live-tag { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; color: #00e87b; letter-spacing: 1.5px; }
+  .lm-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #00e87b; animation: livePulse 1s infinite; }
+  .lm-ft-tag { font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; }
+  .lm-clock { font-size: 12px; font-weight: 700; color: #00e87b; font-family: var(--font-mono); background: rgba(0,232,123,0.08); padding: 2px 10px; border-radius: 10px; }
+  .lm-timer { font-size: 16px; font-weight: 900; color: #00e87b; font-family: var(--font-mono); letter-spacing: 1px; }
+  .lm-period-tag { font-size: 9px; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+  .lm-intensity { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .lm-intensity-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .lm-intensity-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .lm-intensity-text { font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-left: 4px; }
+  .lm-momentum { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 11px; color: var(--accent); font-weight: 600; }
+  .lm-timeline-half { position: absolute; left: 50%; top: -2px; width: 1px; height: 8px; background: var(--text-muted); opacity: 0.4; }
+  .lm-timeline-red { background: #ff4757 !important; }
+
+  /* Timeline */
+  .lm-timeline { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-bottom: 16px; position: relative; }
+  .lm-timeline-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #00d4ff); border-radius: 2px; transition: width 1s ease; }
+  .lm-timeline-marker { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-card); transform: translateX(-50%); }
+
+  .lm-teams { display: flex; align-items: center; justify-content: space-between; }
+  .lm-team { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .lm-team-right { flex-direction: row-reverse; text-align: right; }
+  .lm-flag { width: 40px; height: 28px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .lm-name { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+
+  .lm-score { display: flex; align-items: center; gap: 8px; padding: 0 20px; }
+  .lm-score-num { font-size: 32px; font-weight: 900; font-family: var(--font-mono); color: var(--text-primary); min-width: 30px; text-align: center; }
+  .lm-score-glow { text-shadow: 0 0 16px rgba(0,232,123,0.4); }
+  .lm-score-sep { font-size: 20px; color: var(--text-muted); font-weight: 300; }
+
+  /* Scorers */
+  .lm-scorers { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .lm-scorers-side { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .lm-scorers-right { text-align: right; }
+  .lm-scorer { font-size: 11px; color: var(--text-secondary); }
+
+  /* Expandable detail */
+  .lm-detail { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); animation: fadeIn 0.3s ease; display: none; }
+  .lm-card.expanded .lm-detail { display: block; }
+  .lm-stats { margin-bottom: 16px; }
+  .lm-stat-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .lm-stat-val { font-size: 14px; font-weight: 700; color: var(--text-primary); width: 50px; text-align: center; }
+  .lm-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .lm-stat-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,0.05); margin-top: 4px; }
+  .lm-stat-bar-home { height: 100%; background: var(--accent); transition: width 0.5s; }
+  .lm-stat-bar-away { height: 100%; background: var(--danger); transition: width 0.5s; }
+
+  .lm-events { display: flex; flex-direction: column; gap: 8px; }
+  .lm-events-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .lm-event-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.02); }
+  .lm-event-away { justify-content: flex-end; }
+  .lm-event-icon { display: flex; align-items: center; }
+  .lm-event-text { font-size: 12px; color: var(--text-secondary); }
+  .lm-event-min { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); min-width: 30px; }
+
+  .lm-tap-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 10px; opacity: 0.5; }
+
+  /* Section headers */
+  .lm-section { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  @media (max-width: 500px) {
+    .lm-name { font-size: 13px; }
+    .lm-flag { width: 32px; height: 22px; }
+    .lm-score-num { font-size: 26px; }
+    .lm-score { padding: 0 12px; }
+    .lm-card { padding: 16px; }
+  }
+  /* ─── CHAT ─── */
+  .wchat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 32px rgba(0,0,0,0.25); }
+  .wchat-header { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+  .wchat-live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(0,232,123,0.8); animation: wlivePulse 2s ease-in-out infinite; flex-shrink: 0; }
+  @keyframes wlivePulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)} }
+  .wchat-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+  .wchat-typing { font-size: 11px; color: var(--accent); margin-left: auto; font-style: italic; opacity: 0.8; }
+  .wchat-messages { height: 380px; overflow-y: auto; padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+  .wchat-messages::-webkit-scrollbar { width: 3px; }
+  .wchat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  /* rows */
+  .wchat-row { display: flex; align-items: flex-end; gap: 8px; animation: wchatIn 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+  .wchat-row-mine { flex-direction: row-reverse; }
+  @keyframes wchatIn { from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none} }
+  .wchat-avatar { width: 34px; height: 34px; min-width: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .wchat-bubble { max-width: 75%; padding: 9px 14px; border-radius: 18px; border-bottom-left-radius: 4px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+  .wchat-bubble-mine { border-radius: 18px; border-bottom-right-radius: 4px; background: linear-gradient(135deg, rgba(0,232,123,0.16), rgba(0,232,123,0.07)); border-color: rgba(0,232,123,0.22); }
+  .wchat-bubble-vip { background: linear-gradient(135deg, rgba(255,215,0,0.09), rgba(255,170,0,0.04)); border-color: rgba(255,215,0,0.25); box-shadow: 0 0 16px rgba(255,215,0,0.07); }
+  .wchat-author { display: block; font-size: 10px; font-weight: 800; color: var(--text-secondary); margin-bottom: 3px; letter-spacing: 0.2px; }
+  .wchat-author-vip { background: linear-gradient(90deg, #ffc107, #ff9800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .wchat-vip-tag { font-size: 8px; font-weight: 800; color: #ffc107; background: rgba(255,193,7,0.12); padding: 1px 5px; border-radius: 6px; }
+  .wchat-time { display: block; font-size: 9px; color: var(--text-muted); margin-top: 4px; text-align: right; opacity: 0.55; }
+  .wchat-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; word-break: break-word; }
+  .wchat-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .wchat-reaction { font-size: 11px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+  .wchat-reaction:hover { background: rgba(0,232,123,0.1); border-color: rgba(0,232,123,0.2); }
+  .wchat-input-row { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.12); }
+  .wchat-input { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 10px 18px; color: var(--text-primary); font-size: 13px; outline: none; transition: all 0.2s; }
+  .wchat-input:focus { border-color: var(--accent); background: rgba(0,232,123,0.03); box-shadow: 0 0 0 3px rgba(0,232,123,0.08); }
+  .wchat-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+  .wchat-send { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--accent); border: none; border-radius: 50%; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,232,123,0.35); flex-shrink: 0; }
+  .wchat-send:hover { transform: scale(1.1); box-shadow: 0 4px 16px rgba(0,232,123,0.5); }
+  .wchat-send svg { fill: #06060c; width: 16px; height: 16px; }
+  .wchat-login-prompt { padding: 18px; text-align: center; border-top: 1px solid var(--border); background: rgba(0,0,0,0.1); }
+  .wchat-login-prompt span { font-size: 12px; color: var(--text-muted); }
+  .wchat-login-prompt button { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 6px 14px; background: rgba(41,182,246,0.08); border: 1px solid rgba(41,182,246,0.25); border-radius: 16px; color: #29B6F6; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .wchat-empty { text-align: center; padding: 60px 20px; }
+  .wchat-empty-text { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  .wchat-system { text-align: center; font-size: 10px; color: var(--accent); padding: 6px 12px; background: rgba(0,232,123,0.04); border-radius: 10px; font-weight: 600; margin: 4px auto; max-width: fit-content; }
+  .coming-up-container { margin-top: 24px; }
+  .lm-card-sched { border-color: rgba(0,232,123,0.1); }
+</style>
+
+<script is:inline data-astro-rerun>
+(function() {
+  var FLAGS = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq","Congo DR":"cd"};
+  
+  function flagUrl(team) {
+    return 'https://flagcdn.com/w80/' + (FLAGS[team] || 'un') + '.png';
+  }
+
+  function setStatus(state, text) {
+    document.querySelector('.status-dot').className = 'status-dot ' + state;
+    document.querySelector('.status-text').textContent = text;
+  }
+
+  function clockToMin(clock) { var n = parseInt(clock); return isNaN(n) ? 0 : Math.min(n, 90); }
+
+  // Smart clock parser: "45+3'" → {base:45, added:3, stoppage:true}
+  function parseClock(clock) {
+    if (!clock) return { base: 0, added: 0, stoppage: false };
+    var plus = clock.indexOf('+');
+    if (plus !== -1) {
+      return { base: parseInt(clock.slice(0, plus)) || 0, added: parseInt(clock.slice(plus + 1)) || 0, stoppage: true };
+    }
+    return { base: parseInt(clock) || 0, added: 0, stoppage: false };
+  }
+
+  function eventIconSvg(type) {
+    if (type === 'goal') return '<svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#00e87b" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="#00e87b"/></svg>';
+    if (type === 'yellow_card') return '<svg width="10" height="14" viewBox="0 0 10 14"><rect width="10" height="14" rx="1.5" fill="#ffa502"/></svg>';
+    if (type === 'red_card') return '<svg width="10" height="14" viewBox="0 0 10 14"><rect width="10" height="14" rx="1.5" fill="#ff4757"/></svg>';
+    if (type === 'sub') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>';
+    return '';
+  }
+
+  function getPeriod(m) {
+    if (m.status === 'STATUS_HALFTIME') return 'HT';
+    if (m.status === 'STATUS_FINAL' || m.status === 'STATUS_FULL_TIME' || m.status === 'FINISHED') return 'FT';
+    var p = parseClock(m.clock);
+    if (p.stoppage && p.base <= 45) return '1ST +';
+    if (p.stoppage) return '2ND +';
+    if ((p.base || 0) <= 45) return '1ST HALF';
+    return '2ND HALF';
+  }
+  function getIntensity(m) {
+    var evts = (m.events || []).length;
+    if (evts >= 6) return { level: 'HIGH', color: '#ff4757' };
+    if (evts >= 3) return { level: 'MED', color: '#ffa502' };
+    return { level: 'LOW', color: '#00e87b' };
+  }
+  function getMomentum(m) {
+    var min = clockToMin(m.clock);
+    var events = m.events || [];
+    var recent = events.filter(function(e) { return parseInt(e.minute) > min - 15; });
+    var home = recent.filter(function(e) { return e.side === 'home'; }).length;
+    var away = recent.filter(function(e) { return e.side === 'away'; }).length;
+    if (home > away + 1) return m.home_team + ' pressing';
+    if (away > home + 1) return m.away_team + ' pressing';
+    return null;
+  }
+
+  // Timer - persists across refresh using sessionStorage
+  var stored = JSON.parse(sessionStorage.getItem('lm_timer') || 'null');
+  var anchorTime = stored ? stored.t : null;
+  var anchorMin = stored ? stored.m : -1;
+  var anchorStoppage = stored ? stored.s : false;
+  var anchorStoppageBase = stored ? stored.sb : 0;
+
+  function formatSmartClock(el) {
+    var clock = el.dataset.clock || '';
+    var status = el.dataset.status || '';
+
+    // Halftime or Final — frozen display
+    if (status === 'STATUS_HALFTIME') { el.textContent = 'HT'; return; }
+    if (status === 'STATUS_FINAL' || status === 'STATUS_FULL_TIME' || status === 'FINISHED') { el.textContent = 'FT'; return; }
+
+    var p = parseClock(clock);
+    var key = p.stoppage ? (p.base + '+' + p.added) : String(p.base);
+    var keyNum = p.stoppage ? (p.base * 100 + p.added) : p.base;
+
+    // Re-anchor if clock changed
+    if (anchorMin !== keyNum || anchorStoppage !== p.stoppage) {
+      anchorTime = Date.now();
+      anchorMin = keyNum;
+      anchorStoppage = p.stoppage;
+      anchorStoppageBase = p.base;
+      sessionStorage.setItem('lm_timer', JSON.stringify({ t: anchorTime, m: anchorMin, s: p.stoppage, sb: p.base }));
+    }
+
+    var elapsed = Math.floor((Date.now() - anchorTime) / 1000);
+
+    if (p.stoppage) {
+      // Stoppage: show "45+3:21"
+      var stoppageTotalSecs = p.added * 60 + elapsed;
+      var stoppageMin = Math.floor(stoppageTotalSecs / 60);
+      var stoppageSec = stoppageTotalSecs % 60;
+      el.textContent = p.base + '+' + String(stoppageMin).padStart(1, '0') + ':' + String(stoppageSec).padStart(2, '0');
+    } else {
+      // Normal: show "23:45"
+      var totalSecs = p.base * 60 + elapsed;
+      var displayMin = Math.floor(totalSecs / 60);
+      var displaySec = totalSecs % 60;
+      el.textContent = String(displayMin).padStart(2, '0') + ':' + String(displaySec).padStart(2, '0');
+    }
+  }
+
+  setInterval(function() {
+    var els = document.querySelectorAll('.lm-timer');
+    els.forEach(formatSmartClock);
+  }, 1000);
+
+  function renderCard(m, isLive) {
+    var min = clockToMin(m.clock);
+    var events = m.events || [];
+    var goals = events.filter(function(e) { return e.type === 'goal'; });
+    var reds = events.filter(function(e) { return e.type === 'red_card'; });
+    var stats = m.stats || {};
+    var hasStats = Object.keys(stats).length > 0;
+    var isFT = m.status === 'STATUS_FINAL';
+
+    var h = '<div class="lm-card ' + (isLive ? 'lm-card-live' : '') + (isFT ? ' lm-card-ft' : '') + '" onclick="this.classList.toggle(\'expanded\')">';
+    
+    // Header with timer
+    h += '<div class="lm-header">';
+    if (isLive) {
+      h += '<div class="lm-live-tag"><span class="lm-live-dot"></span>LIVE<span class="lm-period-tag">' + getPeriod(m) + '</span></div>';
+      // Compute initial display immediately
+      var p = parseClock(m.clock);
+      var initDisplay = '';
+      if (m.status === 'STATUS_HALFTIME') { initDisplay = 'HT'; }
+      else if (anchorTime) {
+        var el2 = Math.floor((Date.now() - anchorTime) / 1000);
+        if (p.stoppage) {
+          var st = p.added * 60 + el2;
+          initDisplay = p.base + '+' + Math.floor(st/60) + ':' + String(st%60).padStart(2,'0');
+        } else {
+          var ts = p.base * 60 + el2;
+          initDisplay = String(Math.floor(ts/60)).padStart(2,'0') + ':' + String(ts%60).padStart(2,'0');
+        }
+      } else {
+        initDisplay = p.stoppage ? p.base + '+' + p.added + ':00' : String(p.base).padStart(2,'0') + ':00';
+      }
+      h += '<span class="lm-timer" data-clock="' + (m.clock || '') + '" data-status="' + (m.status || '') + '">' + initDisplay + '</span>';
+    } else if (isFT) {
+      h += '<span class="lm-ft-tag">FULL TIME</span>';
+    }
+    h += '</div>';
+
+    // Intensity (live only)
+    if (isLive) {
+      var intensity = getIntensity(m);
+      h += '<div class="lm-intensity">';
+      h += '<span class="lm-intensity-label">Intensity</span>';
+      h += '<span class="lm-intensity-dot" style="background:' + intensity.color + '"></span>';
+      h += '<span class="lm-intensity-dot" style="background:' + (intensity.level !== 'LOW' ? intensity.color : 'var(--border)') + '"></span>';
+      h += '<span class="lm-intensity-dot" style="background:' + (intensity.level === 'HIGH' ? intensity.color : 'var(--border)') + '"></span>';
+      h += '<span class="lm-intensity-text" style="color:' + intensity.color + '">' + intensity.level + '</span>';
+      h += '</div>';
+    }
+
+    // Timeline (live only)
+    if (isLive) {
+      h += '<div class="lm-timeline"><div class="lm-timeline-fill" style="width:' + ((min/90)*100) + '%"></div>';
+      h += '<div class="lm-timeline-half"></div>';
+      goals.forEach(function(g) {
+        var gMin = parseInt(g.minute) || 0;
+        h += '<div class="lm-timeline-marker" style="left:' + ((gMin/90)*100) + '%"></div>';
+      });
+      reds.forEach(function(r) {
+        var rMin = parseInt(r.minute) || 0;
+        h += '<div class="lm-timeline-marker lm-timeline-red" style="left:' + ((rMin/90)*100) + '%"></div>';
+      });
+      h += '</div>';
+    }
+
+    // Teams + Score
+    h += '<div class="lm-teams">';
+    h += '<div class="lm-team"><img class="lm-flag" src="' + flagUrl(m.home_team) + '" alt=""/><span class="lm-name">' + (m.home_team || '') + '</span></div>';
+    h += '<div class="lm-score"><span class="lm-score-num' + (isLive ? ' lm-score-glow' : '') + '">' + m.home_score + '</span><span class="lm-score-sep">:</span><span class="lm-score-num' + (isLive ? ' lm-score-glow' : '') + '">' + m.away_score + '</span></div>';
+    h += '<div class="lm-team lm-team-right"><img class="lm-flag" src="' + flagUrl(m.away_team) + '" alt=""/><span class="lm-name">' + (m.away_team || '') + '</span></div>';
+    h += '</div>';
+
+    // Momentum
+    if (isLive) {
+      var momentum = getMomentum(m);
+      if (momentum) {
+        h += '<div class="lm-momentum"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>' + momentum + '</span></div>';
+      }
+    }
+
+    // Goal scorers summary
+    if (goals.length > 0) {
+      h += '<div class="lm-scorers"><div class="lm-scorers-side">';
+      goals.filter(function(g) { return g.side === 'home'; }).forEach(function(g) {
+        h += '<span class="lm-scorer">' + g.player + ' ' + g.minute + '</span>';
+      });
+      h += '</div><div class="lm-scorers-side lm-scorers-right">';
+      goals.filter(function(g) { return g.side === 'away'; }).forEach(function(g) {
+        h += '<span class="lm-scorer">' + g.player + ' ' + g.minute + '</span>';
+      });
+      h += '</div></div>';
+    }
+
+    // Expandable detail
+    h += '<div class="lm-detail">';
+    if (m.possession_home || hasStats) {
+      h += '<div class="lm-stats">';
+      if (m.possession_home) {
+        h += '<div class="lm-stat-row"><span class="lm-stat-val">' + m.possession_home + '</span><span class="lm-stat-label">Possession</span><span class="lm-stat-val">' + m.possession_away + '</span></div>';
+        h += '<div class="lm-stat-bar"><div class="lm-stat-bar-home" style="width:' + m.possession_home + '"></div><div class="lm-stat-bar-away" style="width:' + m.possession_away + '"></div></div>';
+      }
+      if (stats.home_shotsOnTarget) {
+        h += '<div class="lm-stat-row"><span class="lm-stat-val">' + stats.home_shotsOnTarget + '</span><span class="lm-stat-label">Shots on Target</span><span class="lm-stat-val">' + stats.away_shotsOnTarget + '</span></div>';
+      }
+      if (stats.home_totalShots) {
+        h += '<div class="lm-stat-row"><span class="lm-stat-val">' + stats.home_totalShots + '</span><span class="lm-stat-label">Total Shots</span><span class="lm-stat-val">' + stats.away_totalShots + '</span></div>';
+      }
+      if (stats.home_cornerKicks) {
+        h += '<div class="lm-stat-row"><span class="lm-stat-val">' + stats.home_cornerKicks + '</span><span class="lm-stat-label">Corners</span><span class="lm-stat-val">' + stats.away_cornerKicks + '</span></div>';
+      }
+      h += '</div>';
+    }
+    if (events.length > 0) {
+      h += '<div class="lm-events"><span class="lm-events-title">Match Events</span>';
+      events.forEach(function(ev) {
+        h += '<div class="lm-event-row' + (ev.side === 'away' ? ' lm-event-away' : '') + '">';
+        h += '<span class="lm-event-icon">' + eventIconSvg(ev.type) + '</span>';
+        h += '<span class="lm-event-text">' + ev.player + '</span>';
+        h += '<span class="lm-event-min">' + ev.minute + '</span>';
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+    if (events.length === 0 && !hasStats && !m.possession_home) {
+      h += '<p style="font-size:12px;color:var(--text-muted);text-align:center;margin:0;">Match details appear as events happen</p>';
+    }
+    h += '</div>';
+
+    h += '<div class="lm-tap-hint">Click for match details</div>';
+    h += '</div>';
+    return h;
+  }
+
+  var lastJson = '';
+
+  function renderMatches(matches) {
+    var container = document.getElementById('live-container');
+    if (!matches) matches = [];
+
+    var json = JSON.stringify(matches.map(function(m) { return { h: m.home_team, a: m.away_team, hs: m.home_score, as: m.away_score, s: m.status, c: m.clock, e: (m.events||[]).length }; }));
+    if (json === lastJson) return;
+    lastJson = json;
+
+    var live = matches.filter(function(m) { return m.status === 'STATUS_IN_PROGRESS' || m.status === 'STATUS_LIVE' || m.status === 'STATUS_FIRST_HALF' || m.status === 'STATUS_SECOND_HALF' || m.status === 'STATUS_HALFTIME'; });
+    var ft = matches.filter(function(m) { return m.status === 'STATUS_FINAL' || m.status === 'STATUS_FULL_TIME' || m.status === 'FINISHED'; });
+    var sched = matches.filter(function(m) { var s = m.status; return !live.some(function(l){return l===m;}) && !ft.some(function(f){return f===m;}); });
+
+    var html = '';
+    if (live.length > 0) {
+      live.forEach(function(m) { html += renderCard(m, true); });
+    } else {
+      html += '<div class="live-empty"><svg class="live-empty-svg" width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.2"><animate attributeName="r" values="20;30;20" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite"/></circle><circle cx="36" cy="36" r="20" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.3"><animate attributeName="r" values="14;22;14" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.15;0.6" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="36" cy="36" r="10" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.5"><animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/></circle><circle cx="36" cy="36" r="4" fill="var(--accent)" opacity="0.9"><animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/></circle></svg><div class="live-empty-title">No Live Matches Right Now</div><div class="live-empty-desc">Scores appear here automatically when games kick off.</div></div>';
+    }
+    if (ft.length > 0) {
+      html += '<div class="lm-section">Full Time</div>';
+      ft.forEach(function(m) { html += renderCard(m, false); });
+    }
+    if (sched.length > 0) {
+      // Render Coming Up AFTER chat section
+      var schedContainer = document.getElementById('coming-up-container');
+      var schedHtml = '<div class="lm-section">Coming Up</div>';
+      sched.forEach(function(m) {
+        schedHtml += '<div class="lm-card lm-card-sched"><div class="lm-teams">';
+        schedHtml += '<div class="lm-team"><img class="lm-flag" src="' + flagUrl(m.home_team) + '" alt=""/><span class="lm-name">' + (m.home_team||'') + '</span></div>';
+        schedHtml += '<div class="lm-score"><span class="lm-score-sep">vs</span></div>';
+        schedHtml += '<div class="lm-team lm-team-right"><img class="lm-flag" src="' + flagUrl(m.away_team) + '" alt=""/><span class="lm-name">' + (m.away_team||'') + '</span></div>';
+        schedHtml += '</div></div>';
+      });
+      schedContainer.innerHTML = schedHtml;
+    }
+    container.innerHTML = html;
+  }
+
+  // SSE disabled — polling only, with in-place updates
+  var firstRender = true;
+
+  function poll() {
+    fetch('/api/matches/live').then(function(r) { return r.json(); }).then(function(data) {
+      var arr = Array.isArray(data) ? data : data.matches || [];
+      if (firstRender) {
+        renderMatches(arr);
+        firstRender = false;
+        setStatus('connected', 'Live · Updated just now');
+      } else {
+        // Check if any match changed status category (live→HT, HT→live, live→FT)
+        var needsFullRender = false;
+        arr.forEach(function(m) {
+          var cards = document.querySelectorAll('.lm-card');
+          cards.forEach(function(card) {
+            var nameEl = card.querySelector('.lm-name');
+            if (!nameEl || nameEl.textContent !== m.home_team) return;
+            var timer = card.querySelector('.lm-timer');
+            if (timer && timer.dataset.status !== m.status) needsFullRender = true;
+          });
+        });
+        if (needsFullRender) {
+          renderMatches(arr);
+        } else {
+          arr.forEach(function(m) {
+            var cards = document.querySelectorAll('.lm-card');
+            cards.forEach(function(card) {
+              var nameEl = card.querySelector('.lm-name');
+              if (!nameEl || nameEl.textContent !== m.home_team) return;
+              var nums = card.querySelectorAll('.lm-score-num');
+              if (nums.length >= 2) {
+                nums[0].textContent = m.home_score;
+                nums[1].textContent = m.away_score;
+              }
+              var timer = card.querySelector('.lm-timer');
+              if (timer) {
+                timer.dataset.clock = m.clock || '';
+                timer.dataset.status = m.status || '';
+              }
+              var periodTag = card.querySelector('.lm-period-tag');
+              if (periodTag) periodTag.textContent = getPeriod(m);
+            });
+          });
+        }
+        setStatus('connected', 'Live · Updated just now');
+      }
+    }).catch(function() { setStatus('error', 'Connection error'); });
+  }
+  poll();
+  setInterval(poll, 15000);
+
+  // ─── CHAT ───
+  var chatMsgs = document.getElementById('chat-messages');
+  var chatInput = document.getElementById('chat-input');
+  var chatSendBtn = document.getElementById('chat-send-btn');
+  var chatInputRow = document.getElementById('chat-input-row');
+  var chatLoginPrompt = document.getElementById('chat-login-prompt');
+  var chatTyping = document.getElementById('chat-typing');
+  var chatRoomTitle = document.getElementById('chat-room-title');
+  var chatLastId = 0;
+  var chatRoom = 'global';
+
+  function getToken() { return localStorage.getItem('miq_token'); }
+  function getUser() { try { return JSON.parse(localStorage.getItem('miq_user')); } catch { return null; } }
+
+  function updateChatAuth() {
+    var user = getUser();
+    window._chatUserId = user ? user.id : null;
+    if (user && getToken()) {
+      chatInputRow.style.display = 'flex';
+      chatLoginPrompt.style.display = 'none';
+    } else {
+      chatInputRow.style.display = 'none';
+      chatLoginPrompt.style.display = 'block';
+    }
+  }
+  updateChatAuth();
+  window.addEventListener('miq:auth', updateChatAuth);
+  window.addEventListener('miq:logout', updateChatAuth);
+  document.addEventListener('miq:auth', updateChatAuth);
+  document.addEventListener('miq:logout', updateChatAuth);
+
+  function relTime(ts) {
+    var diff = Math.floor((Date.now() - new Date(ts + 'Z').getTime()) / 1000);
+    if (diff < 10) return 'just now';
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    return Math.floor(diff / 3600) + 'h ago';
+  }
+
+  function renderMsg(m) {
+    if (m.is_system) return '<div class="wchat-system">' + m.message + '</div>';
+    var vip = m.is_vip ? ' wchat-bubble-vip' : '';
+    var isMine = window._chatUserId && String(m.telegram_id) === String(window._chatUserId);
+    var name = m.first_name || m.username || 'Anon';
+    var initials = name.slice(0,2).toUpperCase();
+    var hue = (m.telegram_id || 0) % 360;
+    var avatarColor = 'hsl(' + hue + ',60%,42%)';
+    var h = '<div class="wchat-row' + (isMine ? ' wchat-row-mine' : '') + '">';
+    if (!isMine) {
+      h += '<div class="wchat-avatar" style="background:' + avatarColor + '" title="' + name + '">' + initials + '</div>';
+    }
+    h += '<div class="wchat-bubble' + vip + (isMine ? ' wchat-bubble-mine' : '') + '">';
+    if (!isMine) {
+      h += '<span class="wchat-author' + (m.is_vip ? ' wchat-author-vip' : '') + '">' + (m.is_vip ? '⭐ ' : '') + name + (m.is_vip ? ' <span class="wchat-vip-tag">VIP</span>' : '') + '</span>';
+    }
+    h += '<div class="wchat-text">' + m.message.replace(/</g, '&lt;') + '</div>';
+    h += '<span class="wchat-time">' + relTime(m.created_at) + '</span>';
+    if (m.reactions && m.reactions !== '{}') {
+      try {
+        var rx = typeof m.reactions === 'string' ? JSON.parse(m.reactions) : m.reactions;
+        var rhtml = Object.entries(rx).map(function(e) { return '<span class="wchat-reaction">' + e[0] + ' ' + e[1] + '</span>'; }).join('');
+        if (rhtml) h += '<div class="wchat-reactions">' + rhtml + '</div>';
+      } catch {}
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  function pollChat() {
+    fetch('/api/chat/messages?room=' + chatRoom + '&after_id=' + chatLastId + '&limit=50')
+      .then(function(r) { return r.json(); })
+      .then(function(msgs) {
+        if (!Array.isArray(msgs) || msgs.length === 0) return;
+        var atBottom = chatMsgs.scrollHeight - chatMsgs.scrollTop - chatMsgs.clientHeight < 60;
+        msgs.forEach(function(m) {
+          if (m.id > chatLastId) chatLastId = m.id;
+          chatMsgs.insertAdjacentHTML('beforeend', renderMsg(m));
+        });
+        if (atBottom) chatMsgs.scrollTop = chatMsgs.scrollHeight;
+      }).catch(function() {});
+
+    fetch('/api/chat/typing?room=' + chatRoom).then(function(r) { return r.json(); }).then(function(d) {
+      chatTyping.textContent = d.users && d.users.length ? d.users.join(', ') + ' typing...' : '';
+    }).catch(function() {});
+  }
+
+  // Initial load
+  fetch('/api/chat/messages?room=' + chatRoom + '&limit=50')
+    .then(function(r) { return r.json(); })
+    .then(function(msgs) {
+      if (!Array.isArray(msgs)) return;
+      if (msgs.length === 0) { chatMsgs.innerHTML = '<div class="wchat-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" opacity="0.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="wchat-empty-text">No messages yet. Start the conversation!</div></div>'; return; }
+      chatMsgs.innerHTML = msgs.map(renderMsg).join('');
+      msgs.forEach(function(m) { if (m.id > chatLastId) chatLastId = m.id; });
+      chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    }).catch(function() { chatMsgs.innerHTML = '<div class="wchat-empty">Chat loading...</div>'; });
+
+  setInterval(pollChat, 2000);
+
+  function sendChat() {
+    var msg = chatInput.value.trim();
+    if (!msg || !getToken()) return;
+    chatInput.value = '';
+    fetch('/api/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ room: chatRoom, message: msg })
+    }).then(function() { pollChat(); }).catch(function() {});
+  }
+
+  chatSendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendChat(); });
+  chatInput.addEventListener('input', function() {
+    if (getToken()) fetch('/api/chat/typing', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, body: JSON.stringify({ room: chatRoom }) }).catch(function() {});
+  });
+
+})();
+</script>

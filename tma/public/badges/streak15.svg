@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="usGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e87b"/>
+      <stop offset="50%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#ffd700"/>
+    </linearGradient>
+    <linearGradient id="usGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#00e87b"/>
+    </linearGradient>
+    <filter id="usBloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="b1"/>
+      <feGaussianBlur stdDeviation="8" result="b2"/>
+      <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="usCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e87b" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00e87b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#usCore)"/>
+  <!-- Orbit rings -->
+  <circle cx="60" cy="60" r="52" fill="none" stroke="#00e87b" stroke-width="1" stroke-dasharray="4 8" opacity="0.3">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="15s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Infinity track base -->
+  <path d="M25 60c0-16 12-28 25-28s18 8 10 28c-8 20 4 28 10 28s25-12 25-28c0-16-12-28-25-28s-18 8-10 28c8 20-4 28-10 28S25 76 25 60z" fill="none" stroke="#1a1a2e" stroke-width="10" stroke-linecap="round"/>
+  <!-- Plasma stream 1 -->
+  <path d="M25 60c0-16 12-28 25-28s18 8 10 28c-8 20 4 28 10 28s25-12 25-28c0-16-12-28-25-28s-18 8-10 28c8 20-4 28-10 28S25 76 25 60z" fill="none" stroke="url(#usGrad)" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 200" filter="url(#usBloom)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-520" dur="3s" repeatCount="indefinite"/>
+  </path>
+  <!-- Plasma stream 2 -->
+  <path d="M25 60c0-16 12-28 25-28s18 8 10 28c-8 20 4 28 10 28s25-12 25-28c0-16-12-28-25-28s-18 8-10 28c8 20-4 28-10 28S25 76 25 60z" fill="none" stroke="url(#usGrad2)" stroke-width="3" stroke-linecap="round" stroke-dasharray="30 230" filter="url(#usBloom)">
+    <animate attributeName="stroke-dashoffset" from="-130" to="-650" dur="3s" repeatCount="indefinite"/>
+  </path>
+  <!-- Center core -->
+  <circle cx="60" cy="60" r="8" fill="#0f0f1a" stroke="url(#usGrad)" stroke-width="2"/>
+  <circle cx="60" cy="60" r="4" fill="#00e87b" filter="url(#usBloom)">
+    <animate attributeName="r" values="3;5;3" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

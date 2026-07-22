@@ -1,0 +1,215 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+const { frontmatter, compiledContent } = Astro.props;
+const { team, group, formation, colors, players, radar, strengths, weaknesses, keyPlayer, playerImg, title, description } = frontmatter;
+
+const c1 = colors?.[0] || '#00e87b';
+const c2 = colors?.[1] || '#ffffff';
+
+// Position mapping for CSS pitch (percentage-based x,y)
+const POSITIONS: Record<string, [number, number]> = {
+  GK: [50, 92],
+  LB: [15, 72], CB: [38, 75], CB2: [62, 75], CB3: [50, 78], RB: [85, 72],
+  LWB: [12, 58], RWB: [88, 58],
+  CDM: [40, 55], CDM2: [60, 55],
+  CM: [35, 48], CM2: [50, 50], CM3: [65, 48],
+  CAM: [50, 35], RAM: [70, 35], LAM: [30, 35],
+  AM: [40, 32], AM2: [60, 32],
+  LM: [15, 45], RM: [85, 45],
+  LW: [18, 25], RW: [82, 25],
+  ST: [50, 15], ST2: [40, 18], CF: [50, 22],
+};
+
+// Assign pitch positions based on formation and player pos
+function getPositions(players: any[]) {
+  const counts: Record<string, number> = {};
+  return (players || []).map(p => {
+    const pos = p.pos;
+    counts[pos] = (counts[pos] || 0) + 1;
+    const key = counts[pos] > 1 ? `${pos}${counts[pos]}` : pos;
+    const coords = POSITIONS[key] || POSITIONS[pos] || [50, 50];
+    return { ...p, x: coords[0], y: coords[1] };
+  });
+}
+
+const positioned = getPositions(players);
+
+// Radar data
+const axes = ['finishing', 'buildup', 'pressing', 'defense', 'transition', 'setPieces'];
+const labels = ['Finishing', 'Build-up', 'Pressing', 'Defense', 'Transition', 'Set Pieces'];
+const r = radar || {};
+
+const FLAGS: Record<string, string> = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq"};
+const flagCode = FLAGS[team] || 'un';
+---
+<BaseLayout title={title} description={description}>
+
+  <!-- CINEMATIC HERO -->
+  <section class="hero reveal" style={`--c1:${c1};--c2:${c2}`}>
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <img class="hero-flag" src={`https://flagcdn.com/w160/${flagCode}.png`} alt={team} />
+      <h1 class="hero-name shimmer-text">{team}</h1>
+      <div class="hero-meta">
+        <span class="meta-chip badge-glow">{formation}</span>
+        <span class="meta-chip">Group {group}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMATION PITCH -->
+  <section class="section reveal">
+    <h2 class="section-title"><span class="icon-animated icon-bounce"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="3"/></svg></span> Formation & Roles</h2>
+    <div class="pitch">
+      <div class="pitch-lines">
+        <div class="center-circle"></div>
+        <div class="center-line"></div>
+        <div class="penalty-top"></div>
+        <div class="penalty-bottom"></div>
+      </div>
+      {positioned.map(p => (
+        <div class={`player-dot${p.y < 30 ? ' top-pos' : ''}`} style={`left:${p.x}%;top:${p.y}%`}>
+          <span class="dot-label">{p.pos}</span>
+          <div class="player-tooltip">
+            <strong>{p.name}</strong>
+            <span>{p.role}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- TEAM STATS + KEY PLAYER -->
+  <div class="two-col">
+    <section class="section reveal">
+      <h2 class="section-title"><span class="icon-animated icon-pulse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span> Team Profile</h2>
+      <div class="stats-card glow-card" style={`--c1:${c1}`}>
+        {axes.map((a, i) => (
+          <div class="stat-row">
+            <div class="stat-info">
+              <span class="stat-name">{labels[i]}</span>
+              <span class="stat-val">{r[a] || 5}/10</span>
+            </div>
+            <div class="stat-track">
+              <div class="stat-fill" style={`width:${(r[a] || 5) * 10}%`}></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {keyPlayer && (
+      <section class="section reveal">
+        <h2 class="section-title"><span class="icon-animated icon-bounce"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></span> Key Player</h2>
+        <div class="kp-card glow-card" style={`--c1:${c1}`}>
+          {playerImg && <img class="kp-img" src={playerImg} alt={keyPlayer.name} width="80" height="80" loading="lazy" referrerpolicy="no-referrer" />}
+          <div class="kp-info">
+            <div class="kp-badge">{keyPlayer.position}</div>
+            <h3 class="kp-name">{keyPlayer.name}</h3>
+            <p class="kp-desc">{keyPlayer.desc}</p>
+          </div>
+        </div>
+      </section>
+    )}
+  </div>
+
+  <!-- STRENGTHS & WEAKNESSES -->
+  <div class="sw-grid">
+    <div class="sw-card sw-strength glow-card reveal">
+      <h3><span class="icon-animated icon-bounce"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e87b" stroke-width="2.5" stroke-linecap="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10z"/><path d="M8 12l3 3 5-5"/></svg></span> Strengths</h3>
+      <ul>
+        {(strengths || []).map(s => <li>{s}</li>)}
+      </ul>
+    </div>
+    <div class="sw-card sw-weakness glow-card reveal">
+      <h3><span class="icon-animated icon-pulse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2.5" stroke-linecap="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span> Weaknesses</h3>
+      <ul>
+        {(weaknesses || []).map(w => <li>{w}</li>)}
+      </ul>
+    </div>
+  </div>
+
+  <!-- ANALYSIS -->
+  <section class="section reveal">
+    <h2 class="section-title"><span class="icon-animated icon-bounce"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span> Tactical Breakdown</h2>
+    <div class="analysis-card">
+      <slot />
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  /* HERO */
+  .hero { position: relative; padding: 60px 20px 40px; text-align: center; overflow: hidden; border-radius: 16px; margin-bottom: 24px; }
+  .hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, var(--c1) 0%, rgba(10,10,18,0.95) 50%, var(--c2) 100%); opacity: 0.2; }
+  .hero-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 40%, var(--c1), transparent 60%), radial-gradient(circle at 70% 60%, var(--c2), transparent 60%); opacity: 0.15; }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-flag { width: 72px; height: 54px; border-radius: 6px; object-fit: cover; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 12px; }
+  .hero-name { font-size: clamp(28px, 6vw, 42px); font-weight: 900; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .hero-name::after { display: none; }
+  .hero-meta { display: flex; gap: 8px; justify-content: center; }
+  .meta-chip { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); }
+
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 16px; font-weight: 800; margin: 0 0 14px; }
+  .section-title::after { display: none; }
+
+  /* PITCH */
+  .pitch { position: relative; width: 100%; max-width: 400px; margin: 0 auto; aspect-ratio: 68/105; background: linear-gradient(180deg, #1a472a 0%, #1e5030 50%, #1a472a 100%); border-radius: 12px; border: 2px solid rgba(255,255,255,0.15); overflow: visible; padding: 20px 0; }
+  .pitch-lines { position: absolute; inset: 0; pointer-events: none; }
+  .center-line { position: absolute; top: 50%; left: 5%; right: 5%; height: 1px; background: rgba(255,255,255,0.2); }
+  .center-circle { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); }
+  .penalty-top { position: absolute; top: 3%; left: 25%; right: 25%; height: 14%; border: 1px solid rgba(255,255,255,0.15); border-top: none; }
+  .penalty-bottom { position: absolute; bottom: 3%; left: 25%; right: 25%; height: 14%; border: 1px solid rgba(255,255,255,0.15); border-bottom: none; }
+
+  .player-dot { position: absolute; transform: translate(-50%, -50%); width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 200ms; box-shadow: 0 2px 8px rgba(0,0,0,0.4); z-index: 2; }
+  .player-dot:hover { transform: translate(-50%, -50%) scale(1.3); background: #00e87b; box-shadow: 0 0 16px rgba(0,232,123,0.6); z-index: 10; }
+  .dot-label { font-size: 8px; font-weight: 800; color: #000; letter-spacing: -0.5px; }
+  .player-tooltip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: rgba(10,10,18,0.95); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; white-space: nowrap; text-align: center; z-index: 20; box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+  .player-dot.top-pos .player-tooltip { bottom: auto; top: calc(100% + 8px); }
+  .player-tooltip strong { display: block; font-size: 12px; color: var(--text-primary); margin-bottom: 2px; }
+  .player-tooltip span { font-size: 11px; color: var(--accent); }
+  .player-dot:hover .player-tooltip { display: block; }
+
+  /* STATS */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .stats-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .stat-row { margin-bottom: 14px; }
+  .stat-row:last-child { margin-bottom: 0; }
+  .stat-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .stat-name { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .stat-val { font-size: 11px; font-weight: 700; color: var(--text-muted); font-family: var(--font-mono); }
+  .stat-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .stat-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--c1), color-mix(in srgb, var(--c1) 70%, #fff)); transition: width 600ms ease; }
+
+  /* KEY PLAYER */
+  .kp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; }
+  .kp-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--c1); }
+  .kp-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: linear-gradient(135deg, color-mix(in srgb, var(--c1) 20%, transparent), rgba(255,255,255,0.05)); border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+  .kp-info { flex: 1; min-width: 0; }
+  .kp-badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c1); background: color-mix(in srgb, var(--c1) 12%, transparent); padding: 4px 10px; border-radius: 4px; margin-bottom: 6px; }
+  .kp-name { font-size: 18px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .kp-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+  /* STRENGTHS / WEAKNESSES */
+  .sw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .sw-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+  .sw-card h3 { font-size: 14px; margin: 0 0 10px; }
+  .sw-card ul { list-style: none; padding: 0; margin: 0; }
+  .sw-card li { font-size: 13px; color: var(--text-secondary); line-height: 1.5; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.04); }
+  .sw-card li:first-child { border-top: none; padding-top: 0; }
+  .sw-strength { border-top: 3px solid #00e87b; }
+  .sw-weakness { border-top: 3px solid #ff4757; }
+
+  /* ANALYSIS */
+  .analysis-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .analysis-card :global(p) { color: var(--text-secondary); line-height: 1.75; margin: 0; font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+    .sw-grid { grid-template-columns: 1fr; }
+    .hero { padding: 40px 16px 28px; }
+    .pitch { max-width: 320px; }
+  }
+</style>

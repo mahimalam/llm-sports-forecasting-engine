@@ -1,0 +1,206 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+// Fetch standings at build time for static HTML (Googlebot can read this)
+const GROUPS: Record<string, string[]> = {
+  "GROUP_A": ["Mexico","South Korea","Czechia","South Africa"],
+  "GROUP_B": ["Canada","Bosnia-Herzegovina","Qatar","Switzerland"],
+  "GROUP_C": ["Brazil","Morocco","Haiti","Scotland"],
+  "GROUP_D": ["United States","Paraguay","Australia","Turkey"],
+  "GROUP_E": ["Germany","Curaçao","Ivory Coast","Ecuador"],
+  "GROUP_F": ["Netherlands","Japan","Sweden","Tunisia"],
+  "GROUP_G": ["Belgium","Egypt","Iran","New Zealand"],
+  "GROUP_H": ["Spain","Cape Verde Islands","Saudi Arabia","Uruguay"],
+  "GROUP_I": ["France","Senegal","Iraq","Norway"],
+  "GROUP_J": ["Argentina","Algeria","Austria","Jordan"],
+  "GROUP_K": ["Portugal","Congo DR","Uzbekistan","Colombia"],
+  "GROUP_L": ["England","Croatia","Ghana","Panama"],
+};
+
+let staticStandings: Record<string, any[]> = {};
+try {
+  const res = await fetch("http://127.0.0.1:8000/api/standings");
+  if (res.ok) staticStandings = await res.json();
+} catch {}
+
+// Fallback: show all teams with 0 pts if API unavailable
+if (!Object.keys(staticStandings).length) {
+  for (const [g, teams] of Object.entries(GROUPS)) {
+    staticStandings[g] = teams.map(t => ({ team: t, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 }));
+  }
+}
+---
+<BaseLayout title="FIFA World Cup 2026 Group Standings" description="Live FIFA World Cup 2026 points table. All 12 groups, 48 teams. Updated after every match with wins, draws, goals, and qualification status.">
+
+  <section class="pt-hero reveal">
+    <span class="icon-animated icon-bounce"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span>
+    <h1 class="shimmer-text">Group Standings</h1>
+  </section>
+
+  <div class="pt-search reveal stagger-1">
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="team-search" placeholder="Search any team..." autocomplete="off" spellcheck="false" />
+    </div>
+  </div>
+
+  <div id="standings-container" class="pt-grid reveal stagger-2">
+    {Object.entries(staticStandings).sort().map(([gKey, teams]) => {
+      const label = "Group " + gKey.replace("GROUP_","");
+      return (
+        <div class="pt-group" data-group={gKey}>
+          <div class="pt-group-head">
+            <span class="pt-group-name">{label}</span>
+            <span class="pt-group-status">Group Stage</span>
+          </div>
+          <table class="pt-tbl">
+            <thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
+            <tbody>
+              {(teams as any[]).map((t: any, i: number) => (
+                <tr class={i < 2 ? "q1" : ""}>
+                  <td>
+                    <div class="t-cell">
+                      <span class="t-pos">{i+1}</span>
+                      <a href={`/teams/${t.team.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}/`} style="color:var(--text-primary);font-weight:700;text-decoration:none;font-size:13px">{t.team}</a>
+                    </div>
+                  </td>
+                  <td>{t.p}</td><td>{t.w}</td><td>{t.d}</td><td>{t.l}</td>
+                  <td class={t.gf-t.ga > 0 ? "gd-p" : t.gf-t.ga < 0 ? "gd-n" : "gd-z"}>{t.gf-t.ga >= 0 ? `+${t.gf-t.ga}` : t.gf-t.ga}</td>
+                  <td class="pts">{t.pts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    })}
+  </div>
+
+</BaseLayout>
+
+<style is:global>
+  .pt-hero { text-align: center; padding: 48px 0 28px; }
+  .pt-hero h1 { margin-bottom: 8px; }
+  .pt-hero h1::after { display: none; }
+  .pt-sub { font-size: 13px; font-weight: 600; color: var(--accent); margin: 0 0 12px !important; }
+  .pt-desc { font-size: 13px; color: var(--text-muted) !important; max-width: 520px; margin: 0 auto !important; line-height: 1.6; }
+
+  .pt-search { margin-bottom: 28px; }
+  .search-wrap { position: relative; }
+  .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; transition: stroke 0.2s; }
+  .pt-search input { width: 100%; padding: 14px 20px 14px 44px; font-size: 14px; font-family: var(--font-body); border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); outline: none; transition: border-color 250ms, box-shadow 250ms, transform 250ms; }
+  .pt-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,232,123,0.08), 0 4px 20px rgba(0,232,123,0.05); transform: translateY(-1px); }
+  .pt-search input:focus ~ .search-icon, .pt-search input:focus + .search-icon { stroke: var(--accent); }
+  .pt-search input::placeholder { color: var(--text-muted); }
+
+  .pt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+
+  .pt-group { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, border-color 0.3s; }
+  .pt-group:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 20px rgba(0,232,123,0.04); border-color: rgba(0,232,123,0.2); }
+  .pt-group.hl { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,232,123,0.08); }
+  .pt-group-head { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(0,232,123,0.02); }
+  .pt-group-name { font-size: 14px; font-weight: 800; color: var(--accent); }
+  .pt-group-status { font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; background: rgba(255,255,255,0.04); border-radius: 10px; }
+
+  .pt-tbl { width: 100%; border-collapse: collapse; }
+  .pt-tbl th { padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; border-bottom: 1px solid var(--border); }
+  .pt-tbl th:first-child { text-align: left; padding-left: 20px; }
+  .pt-tbl th:last-child { padding-right: 16px; }
+  .pt-tbl td { padding: 11px 10px; font-size: 13px; color: var(--text-secondary); text-align: center; border-bottom: none; transition: background 0.2s, transform 0.2s; }
+  .pt-tbl td:first-child { text-align: left; padding-left: 20px; }
+  .pt-tbl td:last-child { padding-right: 16px; }
+  .pt-tbl tr:not(:last-child) td { border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .pt-tbl tr:hover td { background: rgba(0,232,123,0.03); }
+  .pt-tbl tr.searched td { background: rgba(0,232,123,0.06); }
+
+  .pt-tbl .t-cell { display: flex; align-items: center; gap: 10px; }
+  .pt-tbl .t-pos { font-size: 11px; font-weight: 700; color: var(--text-muted); font-family: var(--font-mono); min-width: 14px; }
+  .pt-tbl .t-flag { width: 24px; height: 17px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.4); transition: transform 0.3s; }
+  .pt-tbl tr:hover .t-flag { transform: scale(1.15); }
+  .pt-tbl .t-name { font-weight: 700; color: var(--text-primary); font-size: 13px; white-space: nowrap; }
+  .pt-tbl .pts { color: var(--accent); font-weight: 900; font-family: var(--font-mono); font-size: 15px; }
+  .pt-tbl .gd-p { color: var(--accent); font-weight: 600; }
+  .pt-tbl .gd-n { color: var(--danger); font-weight: 600; }
+  .pt-tbl .gd-z { color: var(--text-muted); }
+
+  .pt-tbl tr.q1 td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .pt-tbl tr.q3 td:first-child { box-shadow: inset 3px 0 0 var(--warning); }
+
+  .pt-empty { grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 14px; }
+
+  @media (max-width: 500px) {
+    .pt-grid { grid-template-columns: 1fr; }
+    .pt-tbl td, .pt-tbl th { padding: 9px 6px; font-size: 11px; }
+    .pt-tbl .t-flag { width: 20px; height: 14px; }
+    .pt-tbl .t-name { font-size: 12px; }
+    .pt-tbl .t-pos { font-size: 10px; }
+  }
+</style>
+
+<script is:inline data-astro-rerun>
+(function() {
+  const FLAGS = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq","Congo DR":"cd"};
+
+  let data = {};
+
+  function render(q) {
+    const container = document.getElementById('standings-container');
+    q = (q || '').toLowerCase().trim();
+    const groups = Object.keys(data).sort();
+    let html = '';
+    let found = false;
+
+    for (const g of groups) {
+      const teams = data[g];
+      const match = !q || teams.some(t => t.team.toLowerCase().includes(q));
+      if (!match) continue;
+      found = true;
+
+      const label = g.replace('GROUP_', 'Group ');
+      const hl = q && teams.some(t => t.team.toLowerCase().includes(q));
+      const tp = teams.reduce((s, t) => s + (t.p || 0), 0);
+      const status = tp === 0 ? 'Not started' : tp >= 12 ? 'Complete' : 'Matchday ' + Math.ceil(tp / 4);
+
+      html += '<div class="pt-group' + (hl ? ' hl' : '') + '">';
+      html += '<div class="pt-group-head"><span class="pt-group-name">' + label + '</span><span class="pt-group-status">' + status + '</span></div>';
+      html += '<table class="pt-tbl"><thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+
+      teams.forEach(function(t, i) {
+        const s = q && t.team.toLowerCase().includes(q);
+        const f = FLAGS[t.team] || 'un';
+        const SHORT = {'Cape Verde Islands':'Cape Verde','Bosnia-Herzegovina':'Bosnia','Trinidad and Tobago':'Trinidad','United States':'USA','Saudi Arabia':'S. Arabia','South Africa':'S. Africa','New Zealand':'New Zealand'};
+        const dn = SHORT[t.team] || t.team;
+        const gd = (t.gf || 0) - (t.ga || 0);
+        const gdC = gd > 0 ? 'gd-p' : gd < 0 ? 'gd-n' : 'gd-z';
+        const gdS = gd > 0 ? '+' + gd : '' + gd;
+        const qc = i < 2 ? ' q1' : i === 2 ? ' q3' : '';
+        html += '<tr class="' + qc + (s ? ' searched' : '') + '">';
+        html += '<td><div class="t-cell"><span class="t-pos">' + (i + 1) + '</span><img class="t-flag" src="https://flagcdn.com/w40/' + f + '.png" alt="' + t.team + '" loading="lazy"/><span class="t-name">' + dn + '</span></div></td>';
+        html += '<td>' + (t.p || 0) + '</td><td>' + (t.w || 0) + '</td><td>' + (t.d || 0) + '</td><td>' + (t.l || 0) + '</td>';
+        html += '<td class="' + gdC + '">' + gdS + '</td>';
+        html += '<td class="pts">' + (t.pts || 0) + '</td></tr>';
+      });
+
+      html += '</tbody></table></div>';
+    }
+
+    if (!found) html = '<p class="pt-empty">No team found matching "' + q + '"</p>';
+    container.innerHTML = html;
+  }
+
+  function loadStandings() {
+    fetch('/api/standings').then(function(r) { return r.json(); }).then(function(d) {
+      data = d;
+      render(document.getElementById('team-search').value || '');
+    }).catch(function() {
+      if (!Object.keys(data).length)
+        document.getElementById('standings-container').innerHTML = '<p class="pt-empty">Could not load standings. Please refresh.</p>';
+    });
+  }
+
+  loadStandings();
+  setInterval(loadStandings, 60000);
+
+  document.getElementById('team-search').addEventListener('input', function(e) { render(e.target.value); });
+})();
+</script>

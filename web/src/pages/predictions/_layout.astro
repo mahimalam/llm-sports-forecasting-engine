@@ -1,0 +1,224 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+const { frontmatter } = Astro.props;
+const { title, description, date, matchId, homeTeam, awayTeam, homeWin, draw, awayWin, expectedHome, expectedAway } = frontmatter;
+
+const homeNum = parseFloat(homeWin);
+const awayNum = parseFloat(awayWin);
+const drawNum = parseFloat(draw);
+
+// SEO-optimized title and description
+const seoTitle = `${homeTeam} vs ${awayTeam} Prediction - World Cup 2026`;
+const pick = homeNum > awayNum ? homeTeam : awayNum > homeNum ? awayTeam : "Draw";
+const seoDesc = `${homeTeam} vs ${awayTeam} World Cup 2026. Our pick: ${pick}. ${homeTeam} ${homeWin}%, Draw ${draw}%, ${awayTeam} ${awayWin}%.`;
+
+// Match date formatted
+const matchDate = new Date(date + 'T00:00:00');
+const matchDateStr = matchDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+const slug = `${homeTeam.toLowerCase().replace(/\s+/g,'-')}-vs-${awayTeam.toLowerCase().replace(/\s+/g,'-')}`;
+
+// Determine the pick
+let pickText = '', pickClass = '';
+if (Math.abs(homeNum - awayNum) < 5) { pickText = 'Too close to call'; pickClass = 'neutral'; }
+else if (homeNum > awayNum) { pickText = homeTeam; pickClass = 'home'; }
+else { pickText = awayTeam; pickClass = 'away'; }
+
+// Confidence level text
+const confidence = Math.abs(homeNum - awayNum);
+let confText = 'Low confidence';
+if (confidence > 25) confText = 'High confidence';
+else if (confidence > 12) confText = 'Moderate confidence';
+
+const CODES: Record<string, string> = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi"};
+const flagUrl = (t: string) => `https://flagcdn.com/w80/${CODES[t] || 'un'}.png`;
+---
+<BaseLayout title={seoTitle} description={seoDesc} matchId={matchId} image={`https://vexp.me/og/${slug}.png`}>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SportsEvent",
+        "name": `${homeTeam} vs ${awayTeam} - FIFA World Cup 2026`,
+        "startDate": date,
+        "homeTeam": { "@type": "SportsTeam", "name": homeTeam },
+        "awayTeam": { "@type": "SportsTeam", "name": awayTeam },
+        "location": { "@type": "Place", "name": "FIFA World Cup 2026 Venue" },
+        "sport": "Soccer",
+        "organizer": { "@type": "Organization", "name": "FIFA" },
+        "eventStatus": "https://schema.org/EventScheduled",
+        "url": `https://vexp.me/predictions/${slug}/`
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": `Who will win ${homeTeam} vs ${awayTeam}?`,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": `Our model gives ${homeTeam} a ${homeWin}% win probability, Draw ${draw}%, and ${awayTeam} ${awayWin}%. ${pick} is the predicted winner.`
+            }
+          },
+          {
+            "@type": "Question",
+            "name": `When is ${homeTeam} vs ${awayTeam} World Cup 2026?`,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": `${homeTeam} vs ${awayTeam} takes place on ${matchDateStr} at the FIFA World Cup 2026.`
+            }
+          },
+          {
+            "@type": "Question",
+            "name": `What are the odds for ${homeTeam} vs ${awayTeam}?`,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": `Win probability: ${homeTeam} ${homeWin}%, Draw ${draw}%, ${awayTeam} ${awayWin}%. Expected goals: ${homeTeam} ${expectedHome}, ${awayTeam} ${expectedAway}.`
+            }
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "MatchIQ", "item": "https://vexp.me/" },
+          { "@type": "ListItem", "position": 2, "name": "Predictions", "item": "https://vexp.me/predictions/" },
+          { "@type": "ListItem", "position": 3, "name": `${homeTeam} vs ${awayTeam}`, "item": `https://vexp.me/predictions/${slug}/` }
+        ]
+      }
+    ]
+  })} />
+
+  <!-- MATCHUP HERO -->
+  <div class="match-hero reveal">
+    <span class="match-date">{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+    <div class="matchup">
+      <div class="m-team reveal-left">
+        <img class="m-flag" src={flagUrl(homeTeam)} alt={homeTeam} />
+        <a href={`/teams/${homeTeam.toLowerCase().replace(/\s+/g,'-')}/`} class="m-name m-link">{homeTeam}</a>
+      </div>
+      <div class="m-vs reveal-scale"><span class="shimmer-text">VS</span></div>
+      <div class="m-team reveal-right">
+        <img class="m-flag" src={flagUrl(awayTeam)} alt={awayTeam} />
+        <a href={`/teams/${awayTeam.toLowerCase().replace(/\s+/g,'-')}/`} class="m-name m-link">{awayTeam}</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY PICK -->
+  <div class="pick-card glow-card reveal gradient-border">
+    <div class="pick-top">
+      <span class="pick-label">My Pick</span>
+      <span class={`pick-conf ${confText.split(' ')[0].toLowerCase()}`}>{confText}</span>
+    </div>
+    <div class={`pick-value ${pickClass}`}>
+      {pickClass !== 'neutral' && <img src={flagUrl(pickText)} alt="" class="pick-flag" />}
+      <span>{pickText}</span>
+    </div>
+    <div class="conf-bar">
+      <div class="conf-home" style={`width:${homeWin}%`}><span data-count={homeWin} data-suffix="%">0%</span></div>
+      <div class="conf-draw" style={`width:${draw}%`}><span data-count={draw} data-suffix="%">0%</span></div>
+      <div class="conf-away" style={`width:${awayWin}%`}><span data-count={awayWin} data-suffix="%">0%</span></div>
+    </div>
+    <div class="conf-legend">
+      <span class="cl-home">{homeTeam}</span>
+      <span class="cl-draw">Draw</span>
+      <span class="cl-away">{awayTeam}</span>
+    </div>
+  </div>
+
+  <!-- ANALYSIS -->
+  <section class="analysis reveal">
+    <h2 class="analysis-heading">Match Breakdown</h2>
+    <div class="analysis-content"><slot /></div>
+  </section>
+
+  <!-- CTA -->
+  <a href={`https://t.me/VexpMatchIQBot/app?startapp=match_${matchId}`} class="cta-card glow-card reveal">
+    <span class="cta-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+    <div class="cta-text">
+      <strong>Think you know the result?</strong>
+      <span>Play the quiz & test your football brain</span>
+    </div>
+    <span class="cta-arrow">→</span>
+  </a>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <p><span class="icon-animated" style="display:inline-flex;vertical-align:middle;margin-right:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffa502" stroke-width="2.5" stroke-linecap="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span><strong>Disclaimer:</strong> This is a personal opinion and analysis for entertainment purposes only. This is NOT financial advice. Do not use this to place bets or wagers. We are not responsible for any decisions made based on this content.</p>
+  </div>
+
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .match-hero { text-align: center; padding: 40px 0 24px; }
+  .match-date { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.5px; }
+  .matchup { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 20px; }
+  .m-team { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .m-flag { width: 64px; height: 48px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .m-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .m-link { text-decoration: none; transition: color 0.2s; }
+  .m-link:hover { color: var(--accent); }
+  .m-vs { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); }
+  .m-vs span { font-size: 12px; font-weight: 900; color: var(--text-muted); }
+
+  /* Pick card */
+  .pick-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; margin: 24px 0; }
+  .pick-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .pick-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .pick-conf { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .pick-conf.high { background: rgba(0,232,123,0.1); color: #00e87b; }
+  .pick-conf.moderate { background: rgba(255,165,2,0.1); color: #ffa502; }
+  .pick-conf.low { background: rgba(255,71,87,0.1); color: #ff4757; }
+  .pick-value { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; }
+  .pick-value.home { color: var(--accent); }
+  .pick-value.away { color: #ff6b81; }
+  .pick-value.neutral { color: var(--text-muted); font-size: 18px; }
+  .pick-flag { width: 32px; height: 24px; border-radius: 4px; object-fit: cover; }
+
+  .conf-bar { display: flex; height: 36px; border-radius: 10px; overflow: hidden; margin-top: 16px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .conf-home, .conf-draw, .conf-away { display: flex; align-items: center; justify-content: center; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+  .conf-home { background: linear-gradient(135deg, #00e87b, #00b865); color: #000; }
+  .conf-draw { background: linear-gradient(135deg, #3a3a5c, #2d2d4a); color: #aaa; }
+  .conf-away { background: linear-gradient(135deg, #ff4757, #e63946); color: #fff; }
+  .conf-home span, .conf-draw span, .conf-away span { text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+  .conf-legend { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; }
+  .cl-home { color: #00e87b; font-weight: 600; }
+  .cl-draw { color: var(--text-muted); }
+  .cl-away { color: #ff4757; font-weight: 600; }
+
+  /* Analysis */
+  .analysis { margin: 28px 0; }
+  .analysis-heading { font-size: 18px; font-weight: 700; margin: 0 0 14px; }
+  .analysis-heading::after { display: none; }
+  .analysis-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .analysis-content :global(p) { color: var(--text-secondary); line-height: 1.8; margin-bottom: 14px; font-size: 15px; }
+  .analysis-content :global(p:last-child) { margin-bottom: 0; }
+  .analysis-content :global(h2), .analysis-content :global(h3) { color: var(--text-primary); font-size: 15px; margin: 20px 0 8px; }
+  .analysis-content :global(h2)::after, .analysis-content :global(h3)::after { display: none; }
+  .analysis-content :global(ul), .analysis-content :global(ol) { color: var(--text-secondary); padding-left: 20px; line-height: 1.8; }
+  .analysis-content :global(strong) { color: var(--text-primary); }
+
+  /* CTA */
+  .cta-card { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, rgba(0,232,123,0.06), rgba(0,232,123,0.02)); border: 1px solid rgba(0,232,123,0.25); border-radius: 14px; padding: 18px 20px; text-decoration: none; transition: all 200ms; margin: 24px 0; }
+  .cta-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,232,123,0.12); }
+  .cta-icon { font-size: 24px; }
+  .cta-text { flex: 1; }
+  .cta-text strong { display: block; color: var(--text-primary); font-size: 14px; }
+  .cta-text span { font-size: 12px; color: var(--text-muted); }
+  .cta-arrow { color: var(--accent); font-size: 20px; font-weight: 700; }
+
+  /* Disclaimer */
+  .disclaimer { margin: 20px 0 0; padding: 14px 18px; background: rgba(255,165,2,0.04); border: 1px solid rgba(255,165,2,0.15); border-radius: 10px; }
+  .disclaimer p { font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.6; }
+  .disclaimer strong { color: #ffa502; }
+
+  @media (max-width: 640px) {
+    .matchup { gap: 14px; }
+    .m-flag { width: 48px; height: 36px; }
+    .m-name { font-size: 14px; }
+    .pick-value { font-size: 18px; }
+  }
+</style>

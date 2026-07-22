@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#0A0A0A"/>
+  <!-- Green orbit arc -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#4ADE80" stroke-width="5" stroke-dasharray="45 310" stroke-linecap="round"/>
+  <!-- White ball -->
+  <circle cx="64" cy="64" r="42" fill="#F8F9FA"/>
+  <!-- Black pentagon + seams (matching logo) -->
+  <polygon points="64,44 77,53 72,68 56,68 51,53" fill="#0D0D0D"/>
+  <line x1="64" y1="44" x2="64" y2="26" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="77" y1="53" x2="96" y2="44" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="72" y1="68" x2="86" y2="88" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="56" y1="68" x2="42" y2="88" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="51" y1="53" x2="32" y2="44" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Subtle ball border -->
+  <circle cx="64" cy="64" r="42" fill="none" stroke="#222" stroke-width="1.5"/>
+</svg>

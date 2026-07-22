@@ -1,0 +1,337 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const matchFiles = await Astro.glob('./predictions/*.md');
+const allMatches = matchFiles
+  .map(m => m.frontmatter)
+  .sort((a, b) => `${a.date}${a.time || '00:00'}`.localeCompare(`${b.date}${b.time || '00:00'}`));
+
+// Find next upcoming match (first match whose date >= today)
+const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+const upcoming = allMatches.filter(m => m.date >= today);
+const next = upcoming[0] || allMatches[0];
+
+// Featured: next 4 upcoming
+const featured = upcoming.slice(0, 4);
+
+const FLAGS: Record<string,string> = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq","Congo DR":"cd","Panama":"pa","Ghana":"gh"};
+const flagUrl = (t: string) => `https://flagcdn.com/w80/${FLAGS[t] || 'un'}.png`;
+const flagSm = (t: string) => `https://flagcdn.com/w40/${FLAGS[t] || 'un'}.png`;
+---
+<BaseLayout title="FIFA World Cup 2026 Predictions and Live Scores" description="Follow every FIFA World Cup 2026 match with live scores, predictions, and full schedule. All 104 games covered with kickoff times in IST.">
+
+  <!-- MATCH TICKER -->
+  <div class="ticker-wrap" slot="ticker">
+    <div class="ticker-track">
+      {[...upcoming.slice(0, 8), ...upcoming.slice(0, 8)].map(m => (
+        <span class="ticker-item">
+          <img src={flagSm(m.homeTeam)} alt={m.homeTeam} />
+          {m.homeTeam}
+          <span class="ticker-vs">vs</span>
+          {m.awayTeam}
+          <img src={flagSm(m.awayTeam)} alt={m.awayTeam} />
+          <span class="ticker-time">{m.time} IST</span>
+        </span>
+      ))}
+    </div>
+  </div>
+
+  <!-- NEXT MATCH HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge reveal badge-glow">FIFA WORLD CUP 2026</div>
+    <p class="hero-label reveal stagger-1">Next Match</p>
+
+    <div class="next-match reveal-scale stagger-2 gradient-border hover-3d" id="next-match-card" style="visibility:hidden">
+      <div class="nm-teams">
+        <div class="nm-team">
+          <img class="nm-flag" src={flagUrl(next.homeTeam)} alt={next.homeTeam} width="56" height="42" />
+          <span class="nm-name">{next.homeTeam}</span>
+        </div>
+        <div class="nm-center">
+          <span class="nm-vs shimmer-text">VS</span>
+          <span class="nm-time">{next.time} IST</span>
+        </div>
+        <div class="nm-team">
+          <img class="nm-flag" src={flagUrl(next.awayTeam)} alt={next.awayTeam} width="56" height="42" />
+          <span class="nm-name">{next.awayTeam}</span>
+        </div>
+      </div>
+
+      <div class="nm-countdown" id="nm-countdown" style="visibility:hidden">
+        <div class="cd-item flip-num"><span class="cd-num" id="cd-days">0</span><span class="cd-lbl">Days</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-item flip-num"><span class="cd-num" id="cd-hrs">00</span><span class="cd-lbl">Hours</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-item flip-num"><span class="cd-num" id="cd-min">00</span><span class="cd-lbl">Mins</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-item flip-num"><span class="cd-num" id="cd-sec">00</span><span class="cd-lbl">Secs</span></div>
+      </div>
+    </div>
+
+    <div class="hero-actions reveal stagger-3">
+      <a href="/predictions/" class="btn-primary btn-magnetic">See My Pick</a>
+      <a href="/matches/" class="btn-secondary btn-magnetic">All Matches</a>
+    </div>
+  </section>
+
+  <!-- UPCOMING MATCHES -->
+  <section class="section">
+    <div class="section-header reveal">
+      <h2>Coming Up</h2>
+      <a href="/matches/" class="see-all">All matches →</a>
+    </div>
+    <div class="match-grid">
+      {featured.map((m, i) => {
+        const fav = parseFloat(m.homeWin) > parseFloat(m.awayWin) ? m.homeTeam : parseFloat(m.awayWin) > parseFloat(m.homeWin) ? m.awayTeam : null;
+        return (
+          <div class={`match-card glow-card reveal stagger-${i+1} hover-3d`}>
+            <div class="mc-top">
+              <span class="mc-date">{m.date} • {m.time} IST</span>
+            </div>
+            <div class="mc-teams">
+              <div class="mc-team">
+                <img class="mc-flag" src={flagSm(m.homeTeam)} alt={m.homeTeam} width="24" height="18" />
+                <span class="mc-name">{m.homeTeam}</span>
+              </div>
+              <span class="mc-vs">VS</span>
+              <div class="mc-team">
+                <img class="mc-flag" src={flagSm(m.awayTeam)} alt={m.awayTeam} width="24" height="18" />
+                <span class="mc-name">{m.awayTeam}</span>
+              </div>
+            </div>
+            <div class="mc-lean">
+              <span class="mc-lean-text">{fav ? `Leaning ${fav}` : 'Too close to call'}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- QUICK LINKS -->
+  <section class="features-strip">
+    <a href="/matches/" class="feature glow-card reveal stagger-1 hover-3d icon-spin-hover">
+      <span class="feature-icon icon-bounce"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="10"/></svg></span>
+      <strong>Matches</strong><p>All 104 games</p>
+    </a>
+    <a href="/standings/" class="feature glow-card reveal stagger-2 hover-3d icon-spin-hover">
+      <span class="feature-icon icon-bounce" style="animation-delay:0.3s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span>
+      <strong>Standings</strong><p>Points table</p>
+    </a>
+    <a href="https://t.me/VexpMatchIQBot/app" target="_blank" class="feature glow-card reveal stagger-3 hover-3d icon-spin-hover">
+      <span class="feature-icon icon-bounce" style="animation-delay:0.6s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+      <strong>Quiz</strong><p>Pick winners</p>
+    </a>
+  </section>
+
+</BaseLayout>
+
+<style>
+  .hero { position: relative; padding: 40px 0 32px; text-align: center; overflow: hidden; }
+  .hero-glow { position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 500px; height: 350px; background: radial-gradient(circle, rgba(0,232,123,0.1) 0%, transparent 70%); pointer-events: none; }
+  .hero-badge { display: inline-flex; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 20px; background: rgba(0,232,123,0.1); color: var(--accent); margin-bottom: 8px; }
+  .hero-label { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .next-match { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px 16px; margin: 0 auto 24px; max-width: 420px; }
+  .nm-teams { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .nm-team { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .nm-flag { border-radius: 4px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .nm-name { font-size: 14px; font-weight: 700; color: var(--text-primary); text-align: center; }
+  .nm-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .nm-vs { font-size: 18px; font-weight: 900; color: var(--text-muted); }
+  .nm-time { font-size: 11px; color: var(--accent); font-family: var(--font-mono); font-weight: 600; }
+
+  .nm-countdown { display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .cd-item { display: flex; flex-direction: column; align-items: center; }
+  .cd-num { font-family: var(--font-mono); font-size: 22px; font-weight: 800; color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; min-width: 44px; text-align: center; }
+  .cd-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-top: 3px; }
+  .cd-sep { font-size: 18px; color: var(--text-muted); font-weight: 700; }
+
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: linear-gradient(135deg, #00e87b, #00c764); color: #000; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 24px rgba(0,232,123,0.25); transition: all 200ms; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 32px rgba(0,232,123,0.35); }
+  .btn-secondary { background: var(--bg-card); color: var(--text-primary); font-weight: 600; font-size: 15px; padding: 14px 28px; border-radius: 12px; border: 1px solid var(--border); text-decoration: none; transition: all 200ms; }
+  .btn-secondary:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .section { margin: 32px 0; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .section-header h2 { font-size: 18px; margin: 0; }
+  .section-header h2::after { display: none; }
+  .see-all { font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 500; }
+  .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  :global(.match-card) { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-decoration: none; transition: all 200ms; }
+  :global(.match-card:hover) { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+  :global(.mc-top) { margin-bottom: 10px; }
+  :global(.mc-date) { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+  :global(.mc-teams) { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  :global(.mc-team) { display: flex; align-items: center; gap: 8px; flex: 1; }
+  :global(.mc-team:last-child) { justify-content: flex-end; }
+  :global(.mc-flag) { border-radius: 3px; object-fit: cover; }
+  :global(.mc-name) { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  :global(.mc-vs) { font-size: 11px; font-weight: 800; color: var(--text-muted); background: var(--bg-primary); padding: 3px 7px; border-radius: 5px; }
+  :global(.mc-lean) { padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+  :global(.mc-lean-text) { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+
+  .features-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 32px 0; }
+  .feature { text-align: center; padding: 20px 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; transition: all 200ms; }
+  .feature:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .feature-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+  .feature strong { display: block; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
+  .feature p { font-size: 11px; color: var(--text-muted); margin: 0; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 28px 0 24px; }
+    .match-grid { grid-template-columns: 1fr; }
+    .hero-actions { flex-direction: column; align-items: stretch; padding: 0 20px; }
+    .features-strip { grid-template-columns: 1fr; }
+    .nm-flag { width: 44px; height: 33px; }
+    .nm-countdown { gap: 3px; padding-left: 4px; padding-right: 4px; }
+    .cd-num { font-size: 16px; min-width: 32px; padding: 4px 5px; }
+    .cd-sep { font-size: 12px; }
+    .cd-lbl { font-size: 8px; }
+    .nm-teams { padding: 0 8px; }
+    .next-match { padding: 20px 10px; margin-left: 8px; margin-right: 8px; }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  var countdownEl = document.getElementById('nm-countdown');
+  var nmCard = document.getElementById('next-match-card');
+  var prev = {};
+  var target = null;
+  var timer = null;
+
+  var FLAGS = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Jordan":"jo","Iraq":"iq","Congo DR":"cd","Cape Verde Islands":"cv"};
+  function flagUrl(t) { return 'https://flagcdn.com/w80/' + (FLAGS[t] || 'un') + '.png'; }
+  function flagSm(t) { return 'https://flagcdn.com/w40/' + (FLAGS[t] || 'un') + '.png'; }
+
+  function flip(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var str = String(val);
+    if (prev[id] !== str) {
+      prev[id] = str;
+      el.textContent = str;
+      var p = el.parentElement;
+      p.classList.remove('flipping');
+      void p.offsetWidth;
+      p.classList.add('flipping');
+    }
+  }
+
+  function tick() {
+    if (!target) return;
+    var diff = Math.max(0, target - Date.now());
+    var days = Math.floor(diff / 86400000);
+    var hrs  = Math.floor((diff % 86400000) / 3600000);
+    var mins = Math.floor((diff % 3600000) / 60000);
+    var secs = Math.floor((diff % 60000) / 1000);
+    flip('cd-days', days);
+    flip('cd-hrs', String(hrs).padStart(2,'0'));
+    flip('cd-min', String(mins).padStart(2,'0'));
+    flip('cd-sec', String(secs).padStart(2,'0'));
+    if (diff <= 0) {
+      countdownEl.innerHTML = '<span style="color:var(--accent);font-weight:700;font-size:14px">⚽ MATCH LIVE NOW</span>';
+      clearInterval(timer);
+      setTimeout(function() { loadMatches(true); }, 30000);
+    }
+  }
+
+  function toIST(utc) {
+    var d = new Date(new Date(utc).getTime() + 330 * 60000);
+    return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0') + ' IST';
+  }
+
+  function isUnstarted(st) {
+    return st !== 'STATUS_FINAL' && st !== 'FINISHED' &&
+           st !== 'STATUS_FIRST_HALF' && st !== 'STATUS_SECOND_HALF' &&
+           st !== 'STATUS_HALFTIME' && st !== 'STATUS_IN_PROGRESS' && st !== 'STATUS_LIVE';
+  }
+
+  function fmtDate(utc) {
+    var d = new Date(new Date(utc).getTime() + 330 * 60000);
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return d.getUTCDate() + ' ' + months[d.getUTCMonth()];
+  }
+
+  function renderUpcoming(matches) {
+    var grid = document.querySelector('.match-grid');
+    if (!grid) return;
+    var now = Date.now();
+    var upcoming = matches.filter(function(m) {
+      return isUnstarted(m.status) && new Date(m.utc_date).getTime() > now - 60000;
+    }).slice(0, 4);
+    if (!upcoming.length) return;
+
+    grid.innerHTML = upcoming.map(function(m) {
+      var fav = m.home_win > m.away_win ? m.home_team : m.away_win > m.home_win ? m.away_team : null;
+      var lean = fav ? 'Leaning ' + fav : 'Too close to call';
+      var dateStr = fmtDate(m.utc_date) + ' • ' + toIST(m.utc_date);
+      return '<div class="match-card glow-card hover-3d">' +
+        '<div class="mc-top"><span class="mc-date">' + dateStr + '</span></div>' +
+        '<div class="mc-teams">' +
+          '<div class="mc-team"><img class="mc-flag" src="' + flagSm(m.home_team) + '" width="24" height="18" alt="' + m.home_team + '"/><span class="mc-name">' + m.home_team + '</span></div>' +
+          '<span class="mc-vs">VS</span>' +
+          '<div class="mc-team"><img class="mc-flag" src="' + flagSm(m.away_team) + '" width="24" height="18" alt="' + m.away_team + '"/><span class="mc-name">' + m.away_team + '</span></div>' +
+        '</div>' +
+        '<div class="mc-lean"><span class="mc-lean-text">' + lean + '</span></div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function loadMatches(forceNextCard) {
+    fetch('/api/matches').then(function(r) { return r.json(); }).then(function(ms) {
+      var now = Date.now();
+      var next = null;
+      for (var i = 0; i < ms.length; i++) {
+        var m = ms[i];
+        if (!isUnstarted(m.status)) continue;
+        if (new Date(m.utc_date).getTime() > now - 60000) { next = m; break; }
+      }
+
+      // Always update upcoming grid
+      renderUpcoming(ms);
+
+      if (!next) return;
+
+      // Update hero card
+      var homeFlag = nmCard.querySelectorAll('.nm-flag')[0];
+      var awayFlag = nmCard.querySelectorAll('.nm-flag')[1];
+      var homeName = nmCard.querySelectorAll('.nm-name')[0];
+      var awayName = nmCard.querySelectorAll('.nm-name')[1];
+      var nmTime   = nmCard.querySelector('.nm-time');
+      if (homeFlag) homeFlag.src = flagUrl(next.home_team);
+      if (awayFlag) awayFlag.src = flagUrl(next.away_team);
+      if (homeName) homeName.textContent = next.home_team;
+      if (awayName) awayName.textContent = next.away_team;
+      if (nmTime) nmTime.textContent = toIST(next.utc_date);
+
+      // Restart countdown
+      target = new Date(next.utc_date).getTime();
+      prev = {};
+      // Restore countdown HTML if it was replaced by LIVE banner
+      if (!countdownEl.querySelector('#cd-days')) {
+        countdownEl.innerHTML =
+          '<div class="cd-item flip-num"><span class="cd-num" id="cd-days">0</span><span class="cd-lbl">Days</span></div>' +
+          '<span class="cd-sep">:</span>' +
+          '<div class="cd-item flip-num"><span class="cd-num" id="cd-hrs">00</span><span class="cd-lbl">Hours</span></div>' +
+          '<span class="cd-sep">:</span>' +
+          '<div class="cd-item flip-num"><span class="cd-num" id="cd-min">00</span><span class="cd-lbl">Mins</span></div>' +
+          '<span class="cd-sep">:</span>' +
+          '<div class="cd-item flip-num"><span class="cd-num" id="cd-sec">00</span><span class="cd-lbl">Secs</span></div>';
+      }
+      clearInterval(timer);
+      timer = setInterval(tick, 1000);
+      tick();
+      // Show countdown only after first successful load
+      countdownEl.style.visibility = 'visible';
+      nmCard.style.visibility = 'visible';
+    }).catch(function(){});
+  }
+
+  loadMatches(true);
+  setInterval(function() { loadMatches(false); }, 60000);
+})();
+</script>

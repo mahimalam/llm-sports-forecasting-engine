@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="obGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e87b"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <filter id="obBloom" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="obGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e87b" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00e87b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#obGlow)"/>
+  <!-- Speed lines -->
+  <line x1="10" y1="40" x2="25" y2="40" stroke="#00e87b" stroke-width="1.5" opacity="0.3">
+    <animate attributeName="opacity" values="0.1;0.5;0.1" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line x1="8" y1="55" x2="20" y2="55" stroke="#00d4ff" stroke-width="1" opacity="0.3">
+    <animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+  </line>
+  <line x1="12" y1="70" x2="22" y2="70" stroke="#00e87b" stroke-width="1" opacity="0.3">
+    <animate attributeName="opacity" values="0.1;0.4;0.1" dur="1.8s" repeatCount="indefinite" begin="0.6s"/>
+  </line>
+  <!-- Clock face -->
+  <circle cx="60" cy="60" r="36" fill="#1a1a2e" stroke="url(#obGrad)" stroke-width="3"/>
+  <!-- Hour markers -->
+  <line x1="60" y1="28" x2="60" y2="32" stroke="#00e87b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="60" y1="88" x2="60" y2="92" stroke="#00e87b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="28" y1="60" x2="32" y2="60" stroke="#00e87b" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="88" y1="60" x2="92" y2="60" stroke="#00e87b" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Minute hand -->
+  <line x1="60" y1="60" x2="60" y2="36" stroke="url(#obGrad)" stroke-width="3" stroke-linecap="round" filter="url(#obBloom)">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="4s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hour hand -->
+  <line x1="60" y1="60" x2="72" y2="48" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <!-- Center -->
+  <circle cx="60" cy="60" r="4" fill="#00e87b" filter="url(#obBloom)"/>
+  <!-- Orbital ring -->
+  <circle cx="60" cy="60" r="44" fill="none" stroke="url(#obGrad)" stroke-width="1" stroke-dasharray="4 10" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="-360 60 60" dur="8s" repeatCount="indefinite"/>
+  </circle>
+</svg>

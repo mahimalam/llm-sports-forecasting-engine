@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="vipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="50%" stop-color="#ffa502"/>
+      <stop offset="100%" stop-color="#ff6b35"/>
+    </linearGradient>
+    <radialGradient id="vipGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd700" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="vipBloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="b1"/>
+      <feGaussianBlur stdDeviation="6" result="b2"/>
+      <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#vipGlow)"/>
+  <circle cx="60" cy="60" r="48" fill="none" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="12s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="60" cy="60" r="42" fill="none" stroke="#ffa502" stroke-width="1" stroke-dasharray="4 12" opacity="0.3">
+    <animateTransform attributeName="transform" type="rotate" from="360 60 60" to="0 60 60" dur="8s" repeatCount="indefinite"/>
+  </circle>
+  <path d="M60 22L70.5 43.5H93L75 57.5L81 79L60 66L39 79L45 57.5L27 43.5H49.5L60 22Z" fill="url(#vipGrad)" filter="url(#vipBloom)"/>
+  <path d="M60 32L67 46H81L70 54L74 68L60 60L46 68L50 54L39 46H53L60 32Z" fill="#fff" opacity="0.15"/>
+  <circle cx="60" cy="52" r="4" fill="#fff" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>

@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="About — MatchIQ" description="About MatchIQ: AI-powered FIFA World Cup 2026 predictions, live scores, and tactical analysis.">
+  <article class="legal-page">
+    <h1>About MatchIQ</h1>
+    <p class="legal-date">FIFA World Cup 2026 Companion Platform</p>
+
+    <h2>What We Do</h2>
+    <p>MatchIQ provides AI-powered match predictions, live scores, and tactical analysis for the FIFA World Cup 2026. Our Poisson-based prediction engine analyzes team form, historical results, squad strength, and head-to-head records to deliver win probabilities for every match.</p>
+
+    <h2>Our Predictions</h2>
+    <p>We combine statistical modeling (Poisson distribution) with AI analysis to generate match predictions. Our system processes attack strength, defense ratings, and recent form data to compute probabilities for home win, draw, and away win outcomes.</p>
+
+    <h2>Features</h2>
+    <ul>
+      <li><strong>Match Predictions:</strong> Win probabilities and score forecasts for every World Cup game.</li>
+      <li><strong>Live Scores:</strong> Real-time scores, match events, and statistics.</li>
+      <li><strong>Community Chat:</strong> Discuss matches live with other fans.</li>
+      <li><strong>Telegram Mini App:</strong> Full experience available inside Telegram.</li>
+    </ul>
+
+    <h2>Technology</h2>
+    <p>Built with FastAPI, React, Astro, and powered by Google Gemini AI. Hosted on Cloudflare's global CDN for fast access worldwide.</p>
+
+    <h2>Contact</h2>
+    <p>Reach us on Telegram: <a href="https://t.me/VexpMatchIQBot" target="_blank">@VexpMatchIQBot</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .legal-page { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+  .legal-page h1 { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+  .legal-date { font-size: 12px; color: var(--text-muted); margin-bottom: 32px; }
+  .legal-page h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; color: var(--text-primary); }
+  .legal-page p, .legal-page li { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+  .legal-page ul { padding-left: 20px; margin: 8px 0; }
+  .legal-page a { color: var(--accent); text-decoration: none; }
+</style>

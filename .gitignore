@@ -1,0 +1,60 @@
+# Credentials & Environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials/
+*-credentials.json
+new-n8n-*.json
+service-account*.json
+
+# Allow essential project JSON files
+!package.json
+!package-lock.json
+!player_ids.json
+!tsconfig.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Astro/Node
+node_modules/
+web/dist/
+
+# Temporary & Planning Files
+*.tmp
+*.temp
+*.log
+plan.md
+TODO.md
+*.rules
+.clinerules
+.cursorrules
+.kirorules
+backups/
+docs/archive/
+
+# Skills (not part of project source)
+.skills/
+
+# Graphify output
+graphify-out/

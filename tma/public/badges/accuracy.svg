@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="elGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="50%" stop-color="#00e87b"/>
+      <stop offset="100%" stop-color="#ffd700"/>
+    </linearGradient>
+    <linearGradient id="elFace1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="elFace2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00e87b"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="elBloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="b1"/>
+      <feGaussianBlur stdDeviation="8" result="b2"/>
+      <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="elGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#elGlow)"/>
+  <!-- Orbit -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="url(#elGrad)" stroke-width="1" stroke-dasharray="3 6" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="10s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Diamond shape -->
+  <polygon points="60,20 88,48 60,100 32,48" fill="none" stroke="url(#elGrad)" stroke-width="2" filter="url(#elBloom)"/>
+  <!-- Top facets -->
+  <polygon points="60,20 88,48 60,48 32,48" fill="url(#elFace1)" opacity="0.7"/>
+  <!-- Left facet -->
+  <polygon points="32,48 60,48 60,100" fill="url(#elFace2)" opacity="0.5"/>
+  <!-- Right facet -->
+  <polygon points="88,48 60,48 60,100" fill="url(#elFace1)" opacity="0.4"/>
+  <!-- Inner lines -->
+  <line x1="60" y1="20" x2="60" y2="100" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+  <line x1="32" y1="48" x2="88" y2="48" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+  <line x1="46" y1="48" x2="60" y2="100" stroke="#fff" stroke-width="0.3" opacity="0.2"/>
+  <line x1="74" y1="48" x2="60" y2="100" stroke="#fff" stroke-width="0.3" opacity="0.2"/>
+  <!-- Shine -->
+  <polygon points="60,20 46,48 60,48" fill="#fff" opacity="0.2"/>
+  <!-- Sparkle -->
+  <circle cx="52" cy="38" r="2" fill="#fff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>

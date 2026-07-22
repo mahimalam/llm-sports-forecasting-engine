@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="ssGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e87b"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <filter id="ssBloom" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="ssGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e87b" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00e87b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#ssGlow)"/>
+  <!-- Outer ring -->
+  <circle cx="60" cy="60" r="42" fill="none" stroke="url(#ssGrad)" stroke-width="2.5" opacity="0.8"/>
+  <!-- Middle ring -->
+  <circle cx="60" cy="60" r="30" fill="none" stroke="url(#ssGrad)" stroke-width="1.5" opacity="0.5"/>
+  <!-- Inner ring -->
+  <circle cx="60" cy="60" r="18" fill="none" stroke="url(#ssGrad)" stroke-width="1" opacity="0.4"/>
+  <!-- Crosshair lines -->
+  <line x1="60" y1="14" x2="60" y2="38" stroke="url(#ssGrad)" stroke-width="2" filter="url(#ssBloom)"/>
+  <line x1="60" y1="82" x2="60" y2="106" stroke="url(#ssGrad)" stroke-width="2" filter="url(#ssBloom)"/>
+  <line x1="14" y1="60" x2="38" y2="60" stroke="url(#ssGrad)" stroke-width="2" filter="url(#ssBloom)"/>
+  <line x1="82" y1="60" x2="106" y2="60" stroke="url(#ssGrad)" stroke-width="2" filter="url(#ssBloom)"/>
+  <!-- Radar sweep -->
+  <path d="M60 60L60 18A42 42 0 0 1 95 40Z" fill="url(#ssGrad)" opacity="0.15">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="4s" repeatCount="indefinite"/>
+  </path>
+  <!-- Center dot -->
+  <circle cx="60" cy="60" r="5" fill="#00e87b" filter="url(#ssBloom)">
+    <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Corner markers -->
+  <path d="M28 28l6 0M28 28l0 6" fill="none" stroke="#00e87b" stroke-width="1.5" opacity="0.5"/>
+  <path d="M92 28l-6 0M92 28l0 6" fill="none" stroke="#00e87b" stroke-width="1.5" opacity="0.5"/>
+  <path d="M28 92l6 0M28 92l0-6" fill="none" stroke="#00e87b" stroke-width="1.5" opacity="0.5"/>
+  <path d="M92 92l-6 0M92 92l0-6" fill="none" stroke="#00e87b" stroke-width="1.5" opacity="0.5"/>
+</svg>

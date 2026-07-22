@@ -1,0 +1,292 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const matchFiles = await Astro.glob('../predictions/*.md');
+const allMatches = matchFiles
+  .map(m => ({ ...m.frontmatter, slug: m.file.split('/').pop().replace('.md', '') }))
+  .sort((a, b) => `${a.date}${a.time || '00:00'}`.localeCompare(`${b.date}${b.time || '00:00'}`));
+
+const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+const todayMatches = allMatches.filter(m => m.date === today);
+const upcoming = allMatches.filter(m => m.date > today);
+const finished = allMatches.filter(m => m.date < today);
+
+function groupByDate(list: typeof allMatches) {
+  const g: Record<string, typeof allMatches> = {};
+  list.forEach(m => { (g[m.date] ||= []).push(m); });
+  Object.values(g).forEach(arr => arr.sort((a, b) => (a.time || '').localeCompare(b.time || '')));
+  return g;
+}
+const todayGrouped = groupByDate(todayMatches);
+const upcomingGrouped = groupByDate(upcoming);
+const finishedGrouped = groupByDate(finished);
+const todayDates = Object.keys(todayGrouped).sort();
+const upDates = Object.keys(upcomingGrouped).sort();
+const finDates = Object.keys(finishedGrouped).sort().reverse();
+
+const FLAGS: Record<string, string> = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq"};
+const flagUrl = (t: string) => `https://flagcdn.com/w80/${FLAGS[t] || 'un'}.png`;
+const fmtDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+// Default active tab: today if matches exist, else upcoming
+const defaultTab = todayMatches.length > 0 ? 'today' : 'upcoming';
+---
+<BaseLayout title="FIFA World Cup 2026 Match Schedule" description="Complete FIFA World Cup 2026 match schedule with kickoff times in IST. Browse today's games, upcoming fixtures, and results.">
+
+  <section class="page-hero reveal">
+    <span class="icon-animated icon-bounce"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="10"/><line x1="15" y1="4" x2="15" y2="10"/></svg></span>
+    <h1 class="hero-h1 shimmer-text">Matches</h1>
+  </section>
+
+  <div id="tabs-root" style="opacity:0;transition:opacity 0.08s">
+  <div class="tabs">
+    <button class={`tab ${defaultTab === 'today' ? 'active' : ''}`} data-tab="today">Today ({todayMatches.length})</button>
+    <button class={`tab ${defaultTab === 'upcoming' ? 'active' : ''}`} data-tab="upcoming">Upcoming ({upcoming.length})</button>
+    <button class="tab" data-tab="finished">Finished ({finished.length})</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class={`tab-panel ${defaultTab !== 'today' ? 'hidden' : ''}`} id="panel-today">
+    {todayMatches.length === 0 && <p class="empty">No matches today.</p>}
+    {todayDates.map(date => (
+      <section class="day-group">
+        <div class="day-header">
+          <span class="day-dot live"></span>
+          <span class="day-date">Today, {fmtDate(date)}</span>
+          <span class="day-count">{todayGrouped[date].length} {todayGrouped[date].length === 1 ? 'match' : 'matches'}</span>
+        </div>
+        <div class="day-cards">
+          {todayGrouped[date].map(m => (
+            <div class="mc glow-card reveal" data-mid={m.matchId} data-utc={`${m.date}T${(m.time||'00:00').replace(' IST','')}:00+05:30`}>
+              <div class="mc-body">
+                <div class="mc-side">
+                  <img class="mc-flag" src={flagUrl(m.homeTeam)} alt={m.homeTeam} loading="lazy" />
+                  <span class="mc-name">{m.homeTeam}</span>
+                </div>
+                <div class="mc-center"><span class="mc-vs">VS</span></div>
+                <div class="mc-side mc-right">
+                  <img class="mc-flag" src={flagUrl(m.awayTeam)} alt={m.awayTeam} loading="lazy" />
+                  <span class="mc-name">{m.awayTeam}</span>
+                </div>
+              </div>
+              <div class="mc-foot">
+                <span class="mc-time">{m.time} IST</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <!-- UPCOMING -->
+  <div class={`tab-panel ${defaultTab !== 'upcoming' ? 'hidden' : ''}`} id="panel-upcoming">
+    {upDates.length === 0 && <p class="empty">No upcoming matches.</p>}
+    {upDates.map(date => (
+      <section class="day-group">
+        <div class="day-header">
+          <span class="day-dot"></span>
+          <span class="day-date">{fmtDate(date)}</span>
+          <span class="day-count">{upcomingGrouped[date].length} {upcomingGrouped[date].length === 1 ? 'match' : 'matches'}</span>
+        </div>
+        <div class="day-cards">
+          {upcomingGrouped[date].map(m => (
+            <div class="mc glow-card reveal" data-mid={m.matchId} data-utc={`${m.date}T${(m.time||'00:00').replace(' IST','')}:00+05:30`}>
+              <div class="mc-body">
+                <div class="mc-side">
+                  <img class="mc-flag" src={flagUrl(m.homeTeam)} alt={m.homeTeam} loading="lazy" />
+                  <span class="mc-name">{m.homeTeam}</span>
+                </div>
+                <div class="mc-center"><span class="mc-vs">VS</span></div>
+                <div class="mc-side mc-right">
+                  <img class="mc-flag" src={flagUrl(m.awayTeam)} alt={m.awayTeam} loading="lazy" />
+                  <span class="mc-name">{m.awayTeam}</span>
+                </div>
+              </div>
+              <div class="mc-foot">
+                <span class="mc-time">{m.time} IST</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <!-- FINISHED -->
+  <div class="tab-panel hidden" id="panel-finished">
+    {finDates.length === 0 && <p class="empty">No finished matches yet. Tournament starts June 12!</p>}
+    {finDates.map(date => (
+      <section class="day-group">
+        <div class="day-header">
+          <span class="day-dot done"></span>
+          <span class="day-date">{fmtDate(date)}</span>
+        </div>
+        <div class="day-cards">
+          {finishedGrouped[date].map(m => (
+            <div class="mc mc-done">
+              <div class="mc-body">
+                <div class="mc-side">
+                  <img class="mc-flag" src={flagUrl(m.homeTeam)} alt={m.homeTeam} loading="lazy" />
+                  <span class="mc-name">{m.homeTeam}</span>
+                </div>
+                <div class="mc-center"><span class="mc-score">FT</span></div>
+                <div class="mc-side mc-right">
+                  <img class="mc-flag" src={flagUrl(m.awayTeam)} alt={m.awayTeam} loading="lazy" />
+                  <span class="mc-name">{m.awayTeam}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>  <!-- /panel-finished -->
+  </div>  <!-- /tabs-root -->
+
+</BaseLayout>
+
+<style>
+  .page-hero { text-align: center; padding: 40px 0 20px; }
+  .hero-h1 { font-size: clamp(26px, 5vw, 36px); font-weight: 900; margin: 0 0 8px; }
+  .hero-h1::after { display: none; }
+  .hero-p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; padding: 4px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); }
+  .tab { flex: 1; padding: 12px; font-size: 13px; font-weight: 700; border: none; border-radius: 10px; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 150ms; }
+  .tab.active { background: var(--accent); color: #000; }
+  .tab:not(.active):hover { color: var(--text-primary); }
+  .tab-panel.hidden { display: none; }
+
+  :global(.day-group) { margin-bottom: 24px; }
+  :global(.day-header) { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  :global(.day-dot) { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px rgba(0,232,123,0.4); flex-shrink: 0; }
+  :global(.day-dot.done) { background: #666; box-shadow: none; }
+  :global(.day-dot.live) { background: #ff4444; box-shadow: 0 0 8px rgba(255,68,68,0.6); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  :global(.day-date) { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  :global(.day-count) { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  :global(.day-cards) { display: flex; flex-direction: column; gap: 8px; }
+
+  :global(.mc) { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+  :global(.mc-done) { opacity: 0.7; }
+  :global(.mc-body) { display: flex; align-items: center; justify-content: space-between; }
+  :global(.mc-side) { display: flex; align-items: center; gap: 10px; flex: 1; }
+  :global(.mc-right) { flex-direction: row-reverse; }
+  :global(.mc-flag) { width: 32px; height: 24px; border-radius: 3px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  :global(.mc-name) { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  :global(.mc-center) { padding: 0 12px; }
+  :global(.mc-vs) { font-size: 11px; font-weight: 800; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 4px 10px; border-radius: 6px; }
+  :global(.mc-score) { font-size: 12px; font-weight: 800; color: var(--text-secondary); background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 6px; }
+  :global(.mc-foot) { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.04); }
+  :global(.mc-time) { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); font-weight: 600; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .mc-flag { width: 26px; height: 20px; }
+    .mc-name { font-size: 13px; }
+  }
+</style>
+
+<script is:inline data-astro-rerun>
+(function() {
+  var FLAGS = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Ecuador":"ec","Iran":"ir","Saudi Arabia":"sa","Ghana":"gh","Tunisia":"tn","Panama":"pa","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","New Zealand":"nz","Austria":"at","Ivory Coast":"ci","Uzbekistan":"uz","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq","Congo DR":"cd"};
+  function flagUrl(t) { return 'https://flagcdn.com/w80/' + (FLAGS[t] || 'un') + '.png'; }
+  function fmtDate(s) { return new Date(s + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+  function toIST(utc) {
+    var d = new Date(new Date(utc).getTime() + 330 * 60000);
+    return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0') + ' IST';
+  }
+
+  // Tab switching with URL hash persistence
+  function showTab(tab) {
+    document.querySelectorAll('.tab').forEach(function(b) { b.classList.toggle('active', b.dataset.tab === tab); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.toggle('hidden', p.id !== 'panel-' + tab); });
+    var root = document.getElementById('tabs-root');
+    if (root) root.style.opacity = '1';
+  }
+  var hash = location.hash.replace('#','');
+  var initTab = (hash === 'today' || hash === 'upcoming' || hash === 'finished') ? hash : null;
+  // Apply correct tab immediately (no flash), then reveal
+  if (initTab) showTab(initTab);
+  else { var root = document.getElementById('tabs-root'); if(root) root.style.opacity='1'; }
+  document.querySelectorAll('.tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      showTab(btn.dataset.tab);
+      history.replaceState(null, '', '#' + btn.dataset.tab);
+    });
+  });
+
+  function renderPanel(panelId, groups, isFinished) {
+    var panel = document.getElementById(panelId);
+    if (!panel) return;
+    var wasHidden = panel.classList.contains('hidden');
+    var dates = Object.keys(groups).sort(isFinished ? function(a,b){return b.localeCompare(a);} : undefined);
+    if (!dates.length) {
+      panel.innerHTML = '<p class="empty">' + (isFinished ? 'No finished matches yet.' : 'No matches.') + '</p>';
+      if (wasHidden) panel.classList.add('hidden');
+      return;
+    }
+    panel.innerHTML = dates.map(function(date) {
+      var matches = groups[date];
+      var dotClass = isFinished ? 'done' : (panelId === 'panel-today' ? 'live' : '');
+      var label = panelId === 'panel-today' ? 'Today, ' + fmtDate(date) : fmtDate(date);
+      var countHtml = !isFinished ? '<span class="day-count">' + matches.length + ' ' + (matches.length === 1 ? 'match' : 'matches') + '</span>' : '';
+      var cards = matches.map(function(m) {
+        var ht = m.home_team, at = m.away_team;
+        if (isFinished) {
+          return '<div class="mc mc-done"><div class="mc-body">' +
+            '<div class="mc-side"><img class="mc-flag" src="' + flagUrl(ht) + '" loading="lazy"/><span class="mc-name">' + ht + '</span></div>' +
+            '<div class="mc-center"><span class="mc-score">' + (m.score || 'FT') + '</span></div>' +
+            '<div class="mc-side mc-right"><img class="mc-flag" src="' + flagUrl(at) + '" loading="lazy"/><span class="mc-name">' + at + '</span></div>' +
+            '</div></div>';
+        }
+        return '<div class="mc glow-card"><div class="mc-body">' +
+          '<div class="mc-side"><img class="mc-flag" src="' + flagUrl(ht) + '" loading="lazy"/><span class="mc-name">' + ht + '</span></div>' +
+          '<div class="mc-center"><span class="mc-vs">VS</span></div>' +
+          '<div class="mc-side mc-right"><img class="mc-flag" src="' + flagUrl(at) + '" loading="lazy"/><span class="mc-name">' + at + '</span></div>' +
+          '</div><div class="mc-foot"><span class="mc-time">' + m.time + '</span></div></div>';
+      }).join('');
+      return '<section class="day-group"><div class="day-header"><span class="day-dot ' + dotClass + '"></span><span class="day-date">' + label + '</span>' + countHtml + '</div><div class="day-cards">' + cards + '</div></section>';
+    }).join('');
+    if (wasHidden) panel.classList.add('hidden');
+  }
+
+  function syncTabs() {
+    fetch('/api/matches').then(function(r) { return r.json(); }).then(function(ms) {
+      var todayIST = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+      var todayG = {}, upG = {}, finG = {};
+      ms.forEach(function(m) {
+        if (!m.home_team || !m.away_team) return;
+        var st = m.status || '';
+        var isFinal = st === 'STATUS_FINAL' || st === 'FINISHED' || st === 'STATUS_FULL_TIME';
+        var isLive = st === 'STATUS_FIRST_HALF' || st === 'STATUS_SECOND_HALF' || st === 'STATUS_HALFTIME' || st === 'STATUS_IN_PROGRESS' || st === 'STATUS_LIVE';
+        var kIST = new Date(new Date(m.utc_date).getTime() + 330 * 60000).toISOString().slice(0, 10);
+        var entry = { home_team: m.home_team, away_team: m.away_team, time: toIST(m.utc_date), score: (isFinal && m.home_score != null) ? m.home_score + ' - ' + m.away_score : null };
+        if (isFinal) {
+          (finG[kIST] = finG[kIST] || []).push(entry);
+        } else if (isLive || kIST === todayIST) {
+          (todayG[kIST] = todayG[kIST] || []).push(entry);
+        } else if (kIST > todayIST) {
+          (upG[kIST] = upG[kIST] || []).push(entry);
+        }
+      });
+      renderPanel('panel-today', todayG, false);
+      renderPanel('panel-upcoming', upG, false);
+      renderPanel('panel-finished', finG, true);
+      var tCount = Object.values(todayG).reduce(function(s,a){return s+a.length;},0);
+      var uCount = Object.values(upG).reduce(function(s,a){return s+a.length;},0);
+      var fCount = Object.values(finG).reduce(function(s,a){return s+a.length;},0);
+      document.querySelectorAll('.tab').forEach(function(t) {
+        if (t.dataset.tab==='today') t.textContent='Today ('+tCount+')';
+        else if (t.dataset.tab==='upcoming') t.textContent='Upcoming ('+uCount+')';
+        else if (t.dataset.tab==='finished') t.textContent='Finished ('+fCount+')';
+      });
+    }).catch(function(){});
+  }
+
+  syncTabs();
+  setInterval(syncTabs, 60000);
+})();
+</script>

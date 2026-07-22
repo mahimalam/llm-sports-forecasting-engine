@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="f2g" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ff4757"/>
+      <stop offset="30%" stop-color="#ff6b35"/>
+      <stop offset="60%" stop-color="#ffa502"/>
+      <stop offset="100%" stop-color="#ffd700"/>
+    </linearGradient>
+    <radialGradient id="f2c" cx="50%" cy="65%" r="30%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffa502" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="f2b" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="b1"/>
+      <feGaussianBlur stdDeviation="7" result="b2"/>
+      <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <!-- Double rotating rings -->
+  <circle cx="60" cy="60" r="53" fill="none" stroke="#ff4757" stroke-width="2" stroke-dasharray="10 5 3 5" opacity="0.5">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="60" cy="60" r="47" fill="none" stroke="#ffa502" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="360 60 60" to="0 60 60" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Main flame - large and breathing -->
+  <path d="M60 98C40 98 28 84 28 72c0-14 8-22 13-30 2-4 4-8 3-13 2 2 5 7 8 8 3 1 5-1 5-4 1-3 0-7-1-11 4 3 8 6 10 10 3 5 6 10 9 15 4 7 9 12 9 20C84 88 74 98 60 98z" fill="url(#f2g)" filter="url(#f2b)">
+    <animate attributeName="opacity" values="0.9;1;0.85;1;0.9" dur="0.6s" repeatCount="indefinite"/>
+  </path>
+  <!-- White hot core -->
+  <ellipse cx="60" cy="80" rx="10" ry="12" fill="url(#f2c)">
+    <animate attributeName="rx" values="9;12;9" dur="1s" repeatCount="indefinite"/>
+    <animate attributeName="ry" values="11;14;11" dur="1s" repeatCount="indefinite"/>
+  </ellipse>
+  <!-- Embers - many rising particles -->
+  <circle cx="45" cy="52" r="2.5" fill="#ffd700">
+    <animate attributeName="cy" values="52;25;8" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.5;0" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="45;42;40" dur="1.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="72" cy="48" r="2" fill="#ffa502">
+    <animate attributeName="cy" values="48;22;5" dur="1.9s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="opacity" values="1;0.4;0" dur="1.9s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="cx" values="72;75;78" dur="1.9s" repeatCount="indefinite" begin="0.3s"/>
+  </circle>
+  <circle cx="55" cy="42" r="1.5" fill="#fff">
+    <animate attributeName="cy" values="42;18;2" dur="1.4s" repeatCount="indefinite" begin="0.7s"/>
+    <animate attributeName="opacity" values="0.9;0.3;0" dur="1.4s" repeatCount="indefinite" begin="0.7s"/>
+  </circle>
+  <circle cx="65" cy="45" r="1.8" fill="#ffd700">
+    <animate attributeName="cy" values="45;20;4" dur="2s" repeatCount="indefinite" begin="0.2s"/>
+    <animate attributeName="opacity" values="0.8;0.3;0" dur="2s" repeatCount="indefinite" begin="0.2s"/>
+    <animate attributeName="cx" values="65;67;70" dur="2s" repeatCount="indefinite" begin="0.2s"/>
+  </circle>
+  <circle cx="52" cy="38" r="1" fill="#ff6b35">
+    <animate attributeName="cy" values="38;15;0" dur="1.7s" repeatCount="indefinite" begin="1s"/>
+    <animate attributeName="opacity" values="1;0.2;0" dur="1.7s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="60" cy="35" r="1.2" fill="#fff">
+    <animate attributeName="cy" values="35;12;0" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    <animate attributeName="opacity" values="0.7;0.2;0" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <!-- Heat shimmer ring -->
+  <circle cx="60" cy="60" r="35" fill="none" stroke="#ff4757" stroke-width="1" opacity="0.3">
+    <animate attributeName="r" values="35;40;35" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>

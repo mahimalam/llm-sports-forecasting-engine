@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="fg" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ff4757"/>
+      <stop offset="40%" stop-color="#ffa502"/>
+      <stop offset="80%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="fi" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ffa502"/>
+      <stop offset="100%" stop-color="#fff"/>
+    </linearGradient>
+    <filter id="fb" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="frg" cx="50%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#ff4757" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ff4757" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#frg)"/>
+  <!-- Rotating orbit -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#ff4757" stroke-width="1.5" stroke-dasharray="6 10" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Main flame with flicker -->
+  <path d="M60 95C44 95 34 84 34 74c0-10 6-16 10-22 2-3 4-6 4-10 0-2 1-4 3-5 1 3 3 5 5 6 3 2 5 1 6-1 1-2 1-5 0-8 2-3 5-4 7-4 1 4 4 8 8 12 4 5 7 10 7 17C84 84 76 95 60 95z" fill="url(#fg)" filter="url(#fb)">
+    <animate attributeName="opacity" values="0.85;1;0.9;1;0.85" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <!-- Inner flame with scale pulse -->
+  <path d="M60 93C50 93 44 87 44 81c0-6 4-10 6-14 1 4 3 6 5 5 2-1 3-4 2-7 3 3 5 6 7 10 2 4 3 7 3 11C67 89 65 93 60 93z" fill="url(#fi)" opacity="0.7">
+    <animate attributeName="opacity" values="0.5;0.8;0.5" dur="1.2s" repeatCount="indefinite"/>
+  </path>
+  <!-- Embers rising -->
+  <circle cx="50" cy="55" r="2" fill="#ffd700">
+    <animate attributeName="cy" values="55;35;20" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.5;0" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="2;1.5;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="68" cy="50" r="1.5" fill="#ffa502">
+    <animate attributeName="cy" values="50;30;15" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+    <animate attributeName="opacity" values="1;0.4;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+    <animate attributeName="r" values="1.5;1;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <circle cx="55" cy="45" r="1" fill="#fff">
+    <animate attributeName="cy" values="45;25;10" dur="1.8s" repeatCount="indefinite" begin="1s"/>
+    <animate attributeName="opacity" values="0.9;0.3;0" dur="1.8s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="63" cy="48" r="1.2" fill="#ffd700">
+    <animate attributeName="cy" values="48;28;12" dur="2.2s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="opacity" values="0.8;0.3;0" dur="2.2s" repeatCount="indefinite" begin="0.3s"/>
+  </circle>
+</svg>

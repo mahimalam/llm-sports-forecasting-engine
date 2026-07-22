@@ -1,0 +1,9 @@
+[Unit]
+Description=vexp.me Morning Post Scheduler Timer
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

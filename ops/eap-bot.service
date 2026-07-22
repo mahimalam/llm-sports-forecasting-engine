@@ -1,0 +1,15 @@
+[Unit]
+Description=EAP-Sports Telegram Bot
+After=network.target
+
+[Service]
+Type=exec
+User=mahimalam2400
+WorkingDirectory=/home/mahimalam2400/Fifa_project
+EnvironmentFile=/home/mahimalam2400/Fifa_project/.env
+ExecStart=/home/mahimalam2400/Fifa_project/.venv/bin/python -m bot.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

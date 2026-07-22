@@ -1,0 +1,9 @@
+[Unit]
+Description=vexp.me Match Post Scheduler (runs every 15 min)
+
+[Service]
+Type=oneshot
+User=mahimalam2400
+WorkingDirectory=/home/mahimalam2400/Fifa_project
+ExecStart=/home/mahimalam2400/Fifa_project/.venv/bin/python3 bot/post_scheduler.py
+EnvironmentFile=/home/mahimalam2400/Fifa_project/.env

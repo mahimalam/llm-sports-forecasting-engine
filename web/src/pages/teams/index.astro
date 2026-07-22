@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+let teams = [];
+try {
+  const teamFiles = await Astro.glob('./*.md');
+  teams = teamFiles
+    .map(t => ({ ...t.frontmatter, slug: t.file.split('/').pop().replace('.md', '') }))
+    .sort((a, b) => (a.team || '').localeCompare(b.team || ''));
+} catch(e) {}
+
+const FLAGS: Record<string, string> = {"Mexico":"mx","South Africa":"za","Canada":"ca","Bosnia-Herzegovina":"ba","South Korea":"kr","Czechia":"cz","Brazil":"br","Morocco":"ma","Qatar":"qa","Switzerland":"ch","United States":"us","Paraguay":"py","Argentina":"ar","France":"fr","Germany":"de","Spain":"es","England":"gb-eng","Portugal":"pt","Netherlands":"nl","Belgium":"be","Italy":"it","Croatia":"hr","Uruguay":"uy","Colombia":"co","Japan":"jp","Senegal":"sn","Australia":"au","Poland":"pl","Denmark":"dk","Serbia":"rs","Ecuador":"ec","Iran":"ir","Nigeria":"ng","Saudi Arabia":"sa","Peru":"pe","Ghana":"gh","Cameroon":"cm","Tunisia":"tn","Costa Rica":"cr","Panama":"pa","Chile":"cl","Egypt":"eg","Algeria":"dz","Turkey":"tr","Scotland":"gb-sct","Norway":"no","Sweden":"se","Jamaica":"jm","Honduras":"hn","New Zealand":"nz","Albania":"al","Indonesia":"id","Ukraine":"ua","Austria":"at","Slovenia":"si","Slovakia":"sk","Romania":"ro","Hungary":"hu","Greece":"gr","Bolivia":"bo","Venezuela":"ve","Ivory Coast":"ci","Mali":"ml","DR Congo":"cd","Trinidad and Tobago":"tt","Uzbekistan":"uz","Wales":"gb-wls","Ireland":"ie","Iceland":"is","Finland":"fi","Haiti":"ht","Curaçao":"cw","Cape Verde Islands":"cv","Jordan":"jo","Iraq":"iq","Congo DR":"cd"};
+const flagUrl = (t: string) => `https://flagcdn.com/w40/${FLAGS[t] || 'un'}.png`;
+---
+<BaseLayout title="All Teams: World Cup 2026" description="AI tactical profiles for all 48 FIFA World Cup 2026 teams.">
+
+  <section class="page-header reveal">
+    <div class="teams-icon-wrap">
+      <svg class="teams-svg" width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <!-- 3 people silhouettes -->
+        <circle cx="28" cy="14" r="6" fill="var(--accent)" opacity="0.9" class="teams-head teams-head-1"/>
+        <path d="M20 38c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="var(--accent)" stroke-width="2.5" fill="none" opacity="0.9"/>
+        <circle cx="14" cy="20" r="4.5" fill="var(--accent)" opacity="0.5" class="teams-head teams-head-2"/>
+        <path d="M8 38c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="var(--accent)" stroke-width="2" fill="none" opacity="0.5"/>
+        <circle cx="42" cy="20" r="4.5" fill="var(--accent)" opacity="0.5" class="teams-head teams-head-3"/>
+        <path d="M36 38c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="var(--accent)" stroke-width="2" fill="none" opacity="0.5"/>
+        <!-- Connection lines -->
+        <line x1="18" y1="22" x2="24" y2="18" stroke="var(--accent)" stroke-width="1" opacity="0.2" class="teams-conn"/>
+        <line x1="38" y1="22" x2="32" y2="18" stroke="var(--accent)" stroke-width="1" opacity="0.2" class="teams-conn"/>
+      </svg>
+    </div>
+    <h1 class="shimmer-text">Team Profiles</h1>
+  </section>
+
+  {teams.length > 0 ? (
+    <div class="team-grid reveal stagger-1">
+      {teams.map(t => (
+        <a href={`/teams/${t.slug}/`} class="team-card glow-card">
+          <div class="team-info">
+            <img class="team-flag" src={flagUrl(t.team)} alt={t.team} width="28" height="21" loading="lazy" />
+            <span class="team-name">{t.team}</span>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+      ))}
+    </div>
+  ) : (
+    <div class="card" style="text-align:center;padding:40px">
+      <p>Team profiles generating... Use our <a href="https://t.me/VexpMatchIQBot" style="color:var(--accent)">Telegram Bot</a> for instant analysis.</p>
+    </div>
+  )}
+
+</BaseLayout>
+
+<style>
+  .page-header { padding: 40px 0 24px; text-align: center; }
+
+  .teams-icon-wrap { display: inline-block; margin-bottom: 16px; }
+  .teams-svg { }
+  .teams-head { animation: teamsBob 2.5s ease-in-out infinite; }
+  .teams-head-2 { animation-delay: 0.3s; }
+  .teams-head-3 { animation-delay: 0.6s; }
+  .teams-conn { animation: teamsConn 2s ease-in-out infinite alternate; }
+  @keyframes teamsBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  @keyframes teamsConn { 0% { opacity: 0.1; } 100% { opacity: 0.4; } }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .team-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition-property: border-color, transform;
+    transition-duration: 150ms;
+  }
+  .team-card:hover { border-color: var(--accent); transform: translateX(2px); }
+  .team-info { display: flex; align-items: center; gap: 10px; }
+  .team-flag { border-radius: 3px; object-fit: cover; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+  .team-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+  .arrow { color: var(--text-muted); font-size: 14px; }
+  .team-card:hover .arrow { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .team-grid { grid-template-columns: 1fr; }
+  }
+</style>

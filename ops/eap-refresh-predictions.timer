@@ -1,0 +1,10 @@
+[Unit]
+Description=vexp.me Daily Prediction Refresh Timer
+
+[Timer]
+# 18:00 UTC = midnight BST — runs after all same-day results are in, before next day's matches
+OnCalendar=*-*-* 18:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

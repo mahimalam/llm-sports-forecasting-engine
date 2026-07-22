@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="mmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <radialGradient id="mmGlow" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="mmBloom" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#0f0f1a"/>
+  <circle cx="60" cy="60" r="56" fill="url(#mmGlow)"/>
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#a855f7" stroke-width="1" stroke-dasharray="3 6" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="20s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Brain shape -->
+  <path d="M60 28c-14 0-24 8-24 20 0 8 4 14 8 18v6a3 3 0 003 3h26a3 3 0 003-3v-6c4-4 8-10 8-18 0-12-10-20-24-20z" fill="url(#mmGrad)" filter="url(#mmBloom)" opacity="0.9"/>
+  <!-- Neural connections -->
+  <circle cx="50" cy="44" r="3" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>
+  <circle cx="70" cy="44" r="3" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>
+  <circle cx="55" cy="56" r="2.5" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>
+  <circle cx="67" cy="54" r="2.5" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>
+  <circle cx="60" cy="66" r="2" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>
+  <line x1="50" y1="44" x2="55" y2="56" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  <line x1="70" y1="44" x2="67" y2="54" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  <line x1="55" y1="56" x2="60" y2="66" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  <line x1="67" y1="54" x2="60" y2="66" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  <line x1="50" y1="44" x2="70" y2="44" stroke="#fff" stroke-width="0.8" opacity="0.3"/>
+  <!-- Synapse pulses -->
+  <circle cx="50" cy="44" r="2" fill="#fff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="67" cy="54" r="2" fill="#00d4ff" opacity="0.6">
+    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Base -->
+  <rect x="47" y="78" width="26" height="4" rx="2" fill="#a855f7" opacity="0.6"/>
+  <rect x="49" y="84" width="22" height="3" rx="1.5" fill="#a855f7" opacity="0.4"/>
+</svg>

@@ -1,0 +1,10 @@
+[Unit]
+Description=Run EAP-Sports content generation every 30 min
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=vexp.me Evening Post Scheduler (post-match accuracy)
+
+[Service]
+Type=oneshot
+User=mahimalam2400
+WorkingDirectory=/home/mahimalam2400/Fifa_project
+ExecStart=/usr/bin/python3 bot/post_scheduler.py evening
+EnvironmentFile=/home/mahimalam2400/Fifa_project/.env
